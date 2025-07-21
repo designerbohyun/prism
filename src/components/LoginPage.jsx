@@ -13,8 +13,12 @@ function PrismLogin() {
       <div className="w-full max-w-sm space-y-6">
         {/* 제목 */}
         <div>
-          <h1 className="text-3xl font-bold text-black mb-4">Prism</h1>
-          <h2 className="text-xl font-semibold text-black mb-6">로그인</h2>
+          <h1 className="text-3xl font-bold text-black mb-4 text-center">
+            Prism
+          </h1>
+          <h2 className="text-xl font-semibold text-black mb-6 text-center">
+            로그인
+          </h2>
         </div>
 
         {/* 폼 영역 */}
@@ -46,9 +50,9 @@ function PrismLogin() {
           {/* 로그인 버튼 */}
           <button
             onClick={handleSubmit}
-            className="w-full py-3 mt-6 text-white text-sm font-medium bg-green-600 rounded hover:bg-green-700 transition-colors"
+            className="w-full py-3 mt-6 text-white text-sm font-medium bg-green-600 rounded hover:bg-green-700 transition-colors hover:cursor-pointer"
           >
-            Sign in
+            로그인
           </button>
         </div>
       </div>

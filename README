@@ -1,0 +1,17 @@
+# 프로젝트명
+
+cctv-prism
+
+## 설치 방법
+
+npm install
+
+## 실행 방법
+
+npm start
+
+## 기술 스택
+
+- React
+- Tailwind CSS
+- Webpack

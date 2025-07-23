@@ -1,0 +1,883 @@
+import React, { useState } from "react";
+import CCTVManagement from "./CCTVManagement";
+import PrismLightLogo from "./PrismLightLogo";
+import PrismDarkLogo from "./PrismDarkLogo";
+
+function Dashboard({ onLogout }) {
+  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const menuItems = [
+    {
+      id: "dashboard",
+      label: "대시보드",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "cctv",
+      label: "CCTV 관리",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "monitoring",
+      label: "실시간 모니터링",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "alerts",
+      label: "장애&알림",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "users",
+      label: "사용자 관리",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "reports",
+      label: "통계 & 보고서",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <div
+      className={`h-screen ${
+        isDarkMode ? "bg-gray-900" : "bg-gray-50"
+      } flex relative overflow-hidden`}
+    >
+      {/* 모바일 오버레이 */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* 사이드바 */}
+      <aside
+        className={`${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 ${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-gray-200"
+        } border-r transition-transform duration-300 ease-in-out lg:transition-none`}
+      >
+        <div className="p-6">
+          <div className="flex items-center space-x-3 w-[80px]">
+            {isDarkMode ? <PrismDarkLogo /> : <PrismLightLogo />}
+          </div>
+        </div>
+        <nav className="mt-8 px-3">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveMenu(item.id);
+                setIsSidebarOpen(false);
+              }}
+              className={`w-full px-4 py-3 mb-1 rounded-lg text-left flex items-center space-x-3 transition-all duration-200 ${
+                activeMenu === item.id
+                  ? isDarkMode
+                    ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20"
+                    : "bg-teal-50 text-teal-600"
+                  : isDarkMode
+                  ? "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <span
+                className={
+                  activeMenu === item.id
+                    ? isDarkMode
+                      ? "text-white"
+                      : "text-teal-600"
+                    : isDarkMode
+                    ? "text-gray-400"
+                    : "text-gray-500"
+                }
+              >
+                {item.icon}
+              </span>
+              <span className="font-medium text-sm">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div
+          className={`absolute bottom-0 w-64 p-4 border-t ${
+            isDarkMode ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
+          {/* 다크모드 토글 */}
+          <div className="mb-4 px-4">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                isDarkMode
+                  ? "bg-gray-700 hover:bg-gray-600 text-yellow-400 hover:text-yellow-300"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800"
+              }`}
+              title={isDarkMode ? "라이트 모드로 전환" : "다크 모드로 전환"}
+            >
+              {isDarkMode ? (
+                // 태양 아이콘 (라이트 모드로 전환)
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                // 달 아이콘 (다크 모드로 전환)
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
+          </div>
+          <div className="flex items-center space-x-3 px-4 py-2 mb-4">
+            <div
+              className={`w-8 h-8 ${
+                isDarkMode ? "bg-gray-600" : "bg-gray-200"
+              } rounded-full flex items-center justify-center`}
+            >
+              <svg
+                className={`w-5 h-5 ${
+                  isDarkMode ? "text-gray-300" : "text-gray-600"
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p
+                className={`text-sm font-medium ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                관리자
+              </p>
+              <p
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                admin@prism.com
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onLogout}
+            className={`w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              isDarkMode
+                ? "text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600"
+                : "text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200"
+            }`}
+          >
+            로그아웃
+          </button>
+        </div>
+      </aside>
+
+      {/* 메인 콘텐츠 영역 */}
+      <div className="flex-1 flex flex-col h-full">
+        {/* 헤더 */}
+        <header
+          className={`${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          } border-b`}
+        >
+          <div className="px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {/* 모바일 햄버거 버튼 */}
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`lg:hidden p-2 rounded-md ${
+                  isDarkMode
+                    ? "text-gray-400 hover:text-white hover:bg-gray-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                }`}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+              <h2
+                className={`text-lg sm:text-xl font-semibold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                {menuItems.find((item) => item.id === activeMenu)?.label}
+              </h2>
+            </div>
+          </div>
+        </header>
+
+        {/* 메인 콘텐츠 */}
+        <main
+          className={`flex-1 p-4 sm:p-6 overflow-y-auto h-0 ${
+            isDarkMode ? "" : "bg-gray-50"
+          }`}
+        >
+          {activeMenu === "cctv" ? (
+            <CCTVManagement isDarkMode={isDarkMode} />
+          ) : (
+            <>
+              {/* 통계 카드들 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                {/* 총 사용자 카드 */}
+                <div
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } rounded-xl border p-6`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-lg ${
+                        isDarkMode ? "bg-teal-500/10" : "bg-teal-100"
+                      }`}
+                    >
+                      <svg
+                        className={`w-6 h-6 ${
+                          isDarkMode ? "text-teal-400" : "text-teal-600"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-green-400 font-medium">
+                      +12.5%
+                    </span>
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      총 사용자
+                    </h3>
+                    <p
+                      className={`text-2xl font-bold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      } mt-1`}
+                    >
+                      1,234
+                    </p>
+                  </div>
+                </div>
+
+                {/* 월간 활성 카드 */}
+                <div
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } rounded-xl border p-6`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-lg ${
+                        isDarkMode ? "bg-green-500/10" : "bg-green-100"
+                      }`}
+                    >
+                      <svg
+                        className={`w-6 h-6 ${
+                          isDarkMode ? "text-green-400" : "text-green-600"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-green-400 font-medium">
+                      +8.2%
+                    </span>
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      월간 활성
+                    </h3>
+                    <p
+                      className={`text-2xl font-bold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      } mt-1`}
+                    >
+                      856
+                    </p>
+                  </div>
+                </div>
+
+                {/* 장애 알림 카드 */}
+                <div
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } rounded-xl border p-6`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-lg ${
+                        isDarkMode ? "bg-yellow-500/10" : "bg-yellow-100"
+                      }`}
+                    >
+                      <svg
+                        className={`w-6 h-6 ${
+                          isDarkMode ? "text-yellow-400" : "text-yellow-600"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-red-400 font-medium">
+                      3 활성
+                    </span>
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      장애 알림
+                    </h3>
+                    <p
+                      className={`text-2xl font-bold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      } mt-1`}
+                    >
+                      7
+                    </p>
+                  </div>
+                </div>
+
+                {/* 시스템 상태 카드 */}
+                <div
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } rounded-xl border p-6`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-lg ${
+                        isDarkMode ? "bg-purple-500/10" : "bg-purple-100"
+                      }`}
+                    >
+                      <svg
+                        className={`w-6 h-6 ${
+                          isDarkMode ? "text-purple-400" : "text-purple-600"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-green-400 font-medium">
+                      정상
+                    </span>
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      시스템 상태
+                    </h3>
+                    <p
+                      className={`text-2xl font-bold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      } mt-1`}
+                    >
+                      99.9%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
+                {/* 실시간 CCTV 목록 */}
+                <div
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } rounded-xl border w-full h-full xl:w-2/3`}
+                >
+                  <div
+                    className={`flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b ${
+                      isDarkMode ? "border-gray-700" : "border-gray-200"
+                    } gap-2`}
+                  >
+                    <h3
+                      className={`text-base sm:text-lg font-semibold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      실시간 CCTV 목록
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`text-xs sm:text-sm ${
+                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        총 4대
+                      </span>
+                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      <span className="text-xs sm:text-sm text-green-400 font-medium">
+                        LIVE
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-4 sm:p-6 ">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      {[
+                        {
+                          id: 1,
+                          name: "정문 출입구",
+                          status: "online",
+                          zone: "Zone A",
+                        },
+                        {
+                          id: 2,
+                          name: "주차장 1구역",
+                          status: "online",
+                          zone: "Zone B",
+                        },
+                        {
+                          id: 3,
+                          name: "복도 1층",
+                          status: "online",
+                          zone: "Zone A",
+                        },
+                        {
+                          id: 4,
+                          name: "비상계단",
+                          status: "offline",
+                          zone: "Zone C",
+                        },
+                      ].map((cctv) => (
+                        <div
+                          key={cctv.id}
+                          className={`${
+                            isDarkMode ? "bg-gray-700" : "bg-gray-50"
+                          } rounded-lg p-4 relative`}
+                        >
+                          {/* CCTV Video Preview */}
+                          <div className="aspect-video bg-gray-900 rounded-lg mb-3 overflow-hidden relative">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <svg
+                                className="w-12 h-12 text-gray-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+
+                            {/* Status Badge */}
+                            <div className="absolute top-2 left-2">
+                              <span
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  cctv.status === "online"
+                                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                    : cctv.status === "offline"
+                                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                    : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                }`}
+                              >
+                                {cctv.status === "online"
+                                  ? "ONLINE"
+                                  : cctv.status === "offline"
+                                  ? "OFFLINE"
+                                  : "WARNING"}
+                              </span>
+                            </div>
+
+                            {/* Zone Badge */}
+                            <div className="absolute top-2 right-2">
+                              <span
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  isDarkMode
+                                    ? "bg-gray-600 text-gray-300"
+                                    : "bg-white text-gray-700"
+                                }`}
+                              >
+                                {cctv.zone}
+                              </span>
+                            </div>
+
+                            {/* Play Button */}
+                            {cctv.status === "online" && (
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/50">
+                                <button className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                                  <svg
+                                    className="w-8 h-8 text-white ml-1"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path d="M8 5v14l11-7z" />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* CCTV Info */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4
+                                className={`font-medium text-sm ${
+                                  isDarkMode ? "text-white" : "text-gray-900"
+                                }`}
+                              >
+                                {cctv.name}
+                              </h4>
+                              <p
+                                className={`text-xs ${
+                                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                                } mt-1`}
+                              >
+                                CCTV-{String(cctv.id).padStart(3, "0")}
+                              </p>
+                            </div>
+
+                            {/* Detail Button */}
+                            <button
+                              className={`p-2 rounded-lg transition-colors ${
+                                isDarkMode
+                                  ? "hover:bg-gray-600 text-gray-400 hover:text-white"
+                                  : "hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+                              }`}
+                              title="상세 보기"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 장애 알림 */}
+                <div
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } rounded-xl border w-full xl:w-1/3`}
+                >
+                  <div
+                    className={`px-6 py-4 border-b ${
+                      isDarkMode ? "border-gray-700" : "border-gray-200"
+                    } flex items-center justify-between`}
+                  >
+                    <h3
+                      className={`text-lg font-semibold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      장애 알림
+                    </h3>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        isDarkMode
+                          ? "bg-red-500/20 text-red-400"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
+                      3 활성
+                    </span>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      <div
+                        className={`rounded-lg p-4 ${
+                          isDarkMode
+                            ? "bg-red-500/10 border border-red-500/20"
+                            : "bg-red-50 border border-red-200"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4
+                              className={`text-sm font-medium ${
+                                isDarkMode ? "text-red-400" : "text-red-700"
+                              }`}
+                            >
+                              높음
+                            </h4>
+                            <p
+                              className={`text-sm ${
+                                isDarkMode ? "text-gray-300" : "text-gray-700"
+                              } mt-1`}
+                            >
+                              API 서버 응답 지연
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                isDarkMode ? "text-gray-500" : "text-gray-400"
+                              } mt-2`}
+                            >
+                              10분 전 발생
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className={`rounded-lg p-4 ${
+                          isDarkMode
+                            ? "bg-yellow-500/10 border border-yellow-500/20"
+                            : "bg-yellow-50 border border-yellow-200"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4
+                              className={`text-sm font-medium ${
+                                isDarkMode
+                                  ? "text-yellow-400"
+                                  : "text-yellow-700"
+                              }`}
+                            >
+                              중간
+                            </h4>
+                            <p
+                              className={`text-sm ${
+                                isDarkMode ? "text-gray-300" : "text-gray-700"
+                              } mt-1`}
+                            >
+                              메모리 사용율 경고
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                isDarkMode ? "text-gray-500" : "text-gray-400"
+                              } mt-2`}
+                            >
+                              25분 전 발생
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className={`rounded-lg p-4 ${
+                          isDarkMode
+                            ? "bg-yellow-500/10 border border-yellow-500/20"
+                            : "bg-yellow-50 border border-yellow-200"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4
+                              className={`text-sm font-medium ${
+                                isDarkMode
+                                  ? "text-yellow-400"
+                                  : "text-yellow-700"
+                              }`}
+                            >
+                              낮음
+                            </h4>
+                            <p
+                              className={`text-sm ${
+                                isDarkMode ? "text-gray-300" : "text-gray-700"
+                              } mt-1`}
+                            >
+                              디스크 공간 부족 경고
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                isDarkMode ? "text-gray-500" : "text-gray-400"
+                              } mt-2`}
+                            >
+                              1시간 전 발생
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default Dashboard;

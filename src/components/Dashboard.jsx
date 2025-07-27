@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import CCTVManagement from "./CCTVManagement";
-import PrismLightLogo from "./PrismLightLogo";
-import PrismDarkLogo from "./PrismDarkLogo";
+import PrismLightLogo from "../assets/PrismLightLogo";
+import PrismDarkLogo from "../assets/PrismDarkLogo";
 
 function Dashboard({ onLogout }) {
   const [activeMenu, setActiveMenu] = useState("dashboard");

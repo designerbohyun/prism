@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import CCTVManagement from "./CCTVManagement";
+import UserManagement from "./UserManagement";
 import PrismLightLogo from "../assets/PrismLightLogo";
 import PrismDarkLogo from "../assets/PrismDarkLogo";
 
@@ -7,6 +8,10 @@ function Dashboard({ onLogout }) {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // 등록 drawer 트리거 함수들
+  const [cctvDrawerTrigger, setCctvDrawerTrigger] = useState(null);
+  const [userDrawerTrigger, setUserDrawerTrigger] = useState(null);
 
   const menuItems = [
     {
@@ -289,6 +294,63 @@ function Dashboard({ onLogout }) {
                 {menuItems.find((item) => item.id === activeMenu)?.label}
               </h2>
             </div>
+
+            {/* 등록 버튼들 */}
+            <div className="flex items-center space-x-3">
+              {/* CCTV 등록 버튼 */}
+              {activeMenu === "cctv" && (
+                <button
+                  onClick={() => cctvDrawerTrigger && cctvDrawerTrigger()}
+                  className={`px-3 py-2 text-sm rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
+                    isDarkMode
+                      ? "bg-teal-600 text-white hover:bg-teal-700"
+                      : "bg-teal-600 text-white hover:bg-teal-700"
+                  }`}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">CCTV 등록</span>
+                </button>
+              )}
+
+              {/* 사용자 등록 버튼 */}
+              {activeMenu === "users" && (
+                <button
+                  onClick={() => userDrawerTrigger && userDrawerTrigger()}
+                  className={`px-3 py-2 text-sm rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
+                    isDarkMode
+                      ? "bg-teal-600 text-white hover:bg-teal-700"
+                      : "bg-teal-600 text-white hover:bg-teal-700"
+                  }`}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">사용자 등록</span>
+                </button>
+              )}
+            </div>
           </div>
         </header>
 
@@ -299,7 +361,15 @@ function Dashboard({ onLogout }) {
           }`}
         >
           {activeMenu === "cctv" ? (
-            <CCTVManagement isDarkMode={isDarkMode} />
+            <CCTVManagement
+              isDarkMode={isDarkMode}
+              onRegisterDrawerTrigger={setCctvDrawerTrigger}
+            />
+          ) : activeMenu === "users" ? (
+            <UserManagement
+              isDarkMode={isDarkMode}
+              onRegisterDrawerTrigger={setUserDrawerTrigger}
+            />
           ) : (
             <>
               {/* 통계 카드들 */}

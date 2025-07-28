@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   const [groupList, setGroupList] = useState([]);
   const [cctvList, setCctvList] = useState([]);
+  const [userList, setUserList] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState("add");
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -15,11 +16,13 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
     groupName: "",
     description: "",
     selectedCctvs: [],
+    managerId: "",
   });
 
   useEffect(() => {
     fetchGroups();
     fetchCctvs();
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -42,27 +45,73 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
           name: "본사 1층",
           description: "본사 건물 1층 로비 및 복도 CCTV 그룹",
           cctvIds: [1, 2, 3],
+          managerId: 1,
         },
         {
           id: 2,
           name: "본사 2층",
           description: "본사 건물 2층 사무실 및 회의실 CCTV 그룹",
           cctvIds: [4, 5],
+          managerId: 2,
         },
         {
           id: 3,
           name: "주차장",
           description: "지하 및 지상 주차장 전체 CCTV 그룹",
           cctvIds: [6, 7, 8],
+          managerId: 3,
         },
         {
           id: 4,
           name: "출입구",
           description: "건물 주출입구 및 비상구 CCTV 그룹",
           cctvIds: [9, 10],
+          managerId: 1,
         },
       ];
       setGroupList(sampleGroups);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/users");
+      const data = await response.json();
+      setUserList(data);
+    } catch (err) {
+      console.error("사용자 목록 불러오기 실패:", err);
+      // 샘플 데이터 사용
+      const sampleUsers = [
+        {
+          id: 1,
+          username: "admin",
+          name: "관리자",
+          email: "admin@prism.com",
+          role: "admin",
+        },
+        {
+          id: 2,
+          username: "manager1",
+          name: "김철수",
+          email: "kim@prism.com",
+          role: "manager",
+        },
+        {
+          id: 3,
+          username: "manager2",
+          name: "이영희",
+          email: "lee@prism.com",
+          role: "manager",
+        },
+        {
+          id: 4,
+          username: "staff1",
+          name: "박민수",
+          email: "park@prism.com",
+          role: "staff",
+        },
+      ];
+      setUserList(sampleUsers);
     }
   };
 
@@ -174,6 +223,7 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
       name: formData.groupName,
       description: formData.description,
       cctvIds: formData.selectedCctvs,
+      managerId: parseInt(formData.managerId) || null,
     };
 
     try {
@@ -224,6 +274,7 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
         groupName: selectedGroup.name || "",
         description: selectedGroup.description || "",
         selectedCctvs: selectedGroup.cctvIds || [],
+        managerId: selectedGroup.managerId?.toString() || "",
       });
       setDrawerMode("edit");
     }
@@ -268,7 +319,13 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
       groupName: "",
       description: "",
       selectedCctvs: [],
+      managerId: "",
     });
+  };
+
+  const getManagerName = (managerId) => {
+    const manager = userList.find(user => user.id === managerId);
+    return manager ? manager.name : "미지정";
   };
 
   const handleGroupClick = (group) => {
@@ -340,13 +397,23 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                   {group.description || "설명 없음"}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span
-                    className={`text-sm ${
-                      isDarkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
-                    CCTV {group.cctvIds?.length || 0}대
-                  </span>
+                  <div>
+                    <span
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      CCTV {group.cctvIds?.length || 0}대
+                    </span>
+                    <br />
+                    <span
+                      className={`text-xs ${
+                        isDarkMode ? "text-gray-500" : "text-gray-400"
+                      }`}
+                    >
+                      담당자: {getManagerName(group.managerId)}
+                    </span>
+                  </div>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -705,6 +772,33 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                   </div>
                 </div>
 
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    담당자
+                  </label>
+                  <select
+                    name="managerId"
+                    value={formData.managerId}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                      isDarkMode
+                        ? "bg-gray-700 border-gray-600 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
+                    }`}
+                  >
+                    <option value="">담당자를 선택해주세요</option>
+                    {userList.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.username}) - {user.role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="flex space-x-4 pt-4">
                   <button
                     type="submit"
@@ -758,6 +852,23 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                     }`}
                   >
                     {selectedGroup?.description || "설명 없음"}
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    담당자
+                  </label>
+                  <p
+                    className={`text-sm ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {getManagerName(selectedGroup?.managerId)}
                   </p>
                 </div>
 

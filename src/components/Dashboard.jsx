@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import CCTVManagement from "./CCTVManagement";
+import CCTVGroupManagement from "./CCTVGroupManagement";
 import UserManagement from "./UserManagement";
 import PrismLightLogo from "../assets/PrismLightLogo";
 import PrismDarkLogo from "../assets/PrismDarkLogo";
@@ -12,6 +13,7 @@ function Dashboard({ onLogout }) {
 
   // 등록 drawer 트리거 함수들
   const [cctvDrawerTrigger, setCctvDrawerTrigger] = useState(null);
+  const [cctvGroupDrawerTrigger, setCctvGroupDrawerTrigger] = useState(null);
   const [userDrawerTrigger, setUserDrawerTrigger] = useState(null);
 
   const [cctvList, setCctvList] = useState([]);
@@ -42,6 +44,25 @@ function Dashboard({ onLogout }) {
             strokeLinejoin="round"
             strokeWidth="2"
             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "cctv-group",
+      label: "CCTV 그룹 관리",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
           />
         </svg>
       ),
@@ -134,7 +155,7 @@ function Dashboard({ onLogout }) {
             {isDarkMode ? <PrismDarkLogo /> : <PrismLightLogo />}
           </div>
         </div>
-        <nav className="mt-8 px-3">
+        <nav className="mt-4 px-3">
           {menuItems.map((item) => (
             <button
               key={item.id}
@@ -310,6 +331,35 @@ function Dashboard({ onLogout }) {
 
             {/* 등록 버튼들 */}
             <div className="flex items-center space-x-3">
+              {/* CCTV 그룹 등록 버튼 */}
+              {activeMenu === "cctv-group" && (
+                <button
+                  onClick={() =>
+                    cctvGroupDrawerTrigger && cctvGroupDrawerTrigger()
+                  }
+                  className={`px-3 py-2 text-sm rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
+                    isDarkMode
+                      ? "bg-teal-600 text-white hover:bg-teal-700"
+                      : "bg-teal-600 text-white hover:bg-teal-700"
+                  }`}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">그룹 추가</span>
+                </button>
+              )}
+
               {/* CCTV 등록 버튼 */}
               {activeMenu === "cctv" && (
                 <button
@@ -373,7 +423,12 @@ function Dashboard({ onLogout }) {
             isDarkMode ? "" : "bg-gray-50"
           }`}
         >
-          {activeMenu === "cctv" ? (
+          {activeMenu === "cctv-group" ? (
+            <CCTVGroupManagement
+              isDarkMode={isDarkMode}
+              onRegisterDrawerTrigger={setCctvGroupDrawerTrigger}
+            />
+          ) : activeMenu === "cctv" ? (
             <CCTVManagement
               isDarkMode={isDarkMode}
               onRegisterDrawerTrigger={setCctvDrawerTrigger}

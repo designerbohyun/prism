@@ -6,6 +6,9 @@ cctv-prism
 
 npm install
 
+npm install hls.js
+
+
 ## 실행 방법
 
 npm start

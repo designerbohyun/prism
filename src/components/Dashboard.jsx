@@ -678,10 +678,8 @@ function Dashboard({ onLogout }) {
                   <div className="p-4 sm:p-6 ">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {cctvList.map((cctv) => {
-                        console.log(`[DEBUG] cctv:`, cctv);
                         const validHls =
-                          cctv.hls_address &&
-                          cctv.hls_address.startsWith("http");
+                          cctv.hlsAddress && cctv.hlsAddress.startsWith("http");
 
                         return (
                           <div
@@ -691,11 +689,11 @@ function Dashboard({ onLogout }) {
                             } rounded-lg p-4 relative`}
                           >
                             <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
-                              {cctv.status === "online" &&
-                              cctv.hls_address?.includes("http") ? (
+                              {cctv.status === "ACTIVE" &&
+                              cctv.hlsAddress?.includes("http") ? (
                                 <CctvPlayer
                                   key={cctv.id}
-                                  src={cctv.hls_address}
+                                  src={cctv.hlsAddress}
                                 />
                               ) : (
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -719,7 +717,7 @@ function Dashboard({ onLogout }) {
                               <div className="absolute top-2 left-2">
                                 <span
                                   className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                    cctv.status === "online"
+                                    cctv.status === "ACTIVE"
                                       ? "bg-green-500/20 text-green-400 border border-green-500/30"
                                       : cctv.status === "offline"
                                       ? "bg-red-500/20 text-red-400 border border-red-500/30"
@@ -760,7 +758,7 @@ function Dashboard({ onLogout }) {
                                       : "text-gray-500"
                                   } mt-1`}
                                 >
-                                  {cctv.ip_address}
+                                  {cctv.ipAddress}
                                 </p>
                               </div>
                             </div>

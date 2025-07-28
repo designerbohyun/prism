@@ -29,7 +29,8 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
           longitude: item.longitude,
           latitude: item.latitude,
           roadAddress: item.locationAddress,
-          status: item.status === "online" ? "ONLINE" : "offline",
+          status:
+            item.status?.toLowerCase() === "active" ? "online" : "offline",
         }));
         setCctvList(mapped);
       })
@@ -95,7 +96,7 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                   roadAddress: result.locationAddress,
                   status:
                     result.status?.toLowerCase() === "active"
-                      ? "ONLINE"
+                      ? "online"
                       : "offline",
                 }
               : cctv
@@ -117,7 +118,6 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
         hlsAddress: formData.hlsUrl,
         longitude: parseFloat(formData.longitude),
         latitude: parseFloat(formData.latitude),
-        status: "ONLINE",
       };
 
       try {
@@ -142,7 +142,8 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
             longitude: result.longitude,
             latitude: result.latitude,
             roadAddress: result.locationAddress,
-            status: result.status === "active" ? "online" : "offline",
+            status:
+              result.status?.toLowerCase() === "active" ? "online" : "offline",
           },
         ]);
         setIsDrawerOpen(false);
@@ -308,7 +309,7 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        cctv.status === "ONLINE"
+                        cctv.status === "online"
                           ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : "bg-red-500/20 text-red-400 border border-red-500/30"
                       }`}
@@ -685,7 +686,7 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                     </label>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        selectedCctv?.status === "ONLINE"
+                        selectedCctv?.status === "online"
                           ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : "bg-red-500/20 text-red-400 border border-red-500/30"
                       }`}

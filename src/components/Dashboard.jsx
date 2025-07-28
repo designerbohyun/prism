@@ -691,7 +691,7 @@ function Dashboard({ onLogout }) {
                             } rounded-lg p-4 relative`}
                           >
                             <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
-                              {cctv.status === "online" &&
+                              {cctv.status === "ONLINE" &&
                               cctv.hls_address?.includes("http") ? (
                                 <CctvPlayer
                                   key={cctv.id}
@@ -719,7 +719,7 @@ function Dashboard({ onLogout }) {
                               <div className="absolute top-2 left-2">
                                 <span
                                   className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                    cctv.status === "online"
+                                    cctv.status === "ONLINE"
                                       ? "bg-green-500/20 text-green-400 border border-green-500/30"
                                       : cctv.status === "offline"
                                       ? "bg-red-500/20 text-red-400 border border-red-500/30"

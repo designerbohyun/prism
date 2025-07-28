@@ -1,12 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CCTVManagement from "./CCTVManagement";
 import PrismLightLogo from "./PrismLightLogo";
 import PrismDarkLogo from "./PrismDarkLogo";
+import CctvPlayer from "./CctvPlayer";
 
 function Dashboard({ onLogout }) {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const [cctvList, setCctvList] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/cctvs")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("정상 응답:", data);
+        setCctvList(data);
+      })
+      .catch((err) => console.error("CCTV fetch error:", err));
+  }, []);
 
   const menuItems = [
     {
@@ -586,149 +599,96 @@ function Dashboard({ onLogout }) {
                   </div>
                   <div className="p-4 sm:p-6 ">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {[
-                        {
-                          id: 1,
-                          name: "정문 출입구",
-                          status: "online",
-                          zone: "Zone A",
-                        },
-                        {
-                          id: 2,
-                          name: "주차장 1구역",
-                          status: "online",
-                          zone: "Zone B",
-                        },
-                        {
-                          id: 3,
-                          name: "복도 1층",
-                          status: "online",
-                          zone: "Zone A",
-                        },
-                        {
-                          id: 4,
-                          name: "비상계단",
-                          status: "offline",
-                          zone: "Zone C",
-                        },
-                      ].map((cctv) => (
-                        <div
-                          key={cctv.id}
-                          className={`${
-                            isDarkMode ? "bg-gray-700" : "bg-gray-50"
-                          } rounded-lg p-4 relative`}
-                        >
-                          {/* CCTV Video Preview */}
-                          <div className="aspect-video bg-gray-900 rounded-lg mb-3 overflow-hidden relative">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <svg
-                                className="w-12 h-12 text-gray-600"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      {cctvList.map((cctv) => {
+                        console.log(`[DEBUG] cctv:`, cctv);
+                        const validHls =
+                          cctv.hls_address &&
+                          cctv.hls_address.startsWith("http");
+
+                        return (
+                          <div
+                            key={cctv.id}
+                            className={`${
+                              isDarkMode ? "bg-gray-700" : "bg-gray-50"
+                            } rounded-lg p-4 relative`}
+                          >
+                            <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
+                              {cctv.status === "online" &&
+                              cctv.hls_address?.includes("http") ? (
+                                <CctvPlayer
+                                  key={cctv.id}
+                                  src={cctv.hls_address}
                                 />
-                              </svg>
-                            </div>
-
-                            {/* Status Badge */}
-                            <div className="absolute top-2 left-2">
-                              <span
-                                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                  cctv.status === "online"
-                                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                    : cctv.status === "offline"
-                                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                                    : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                                }`}
-                              >
-                                {cctv.status === "online"
-                                  ? "ONLINE"
-                                  : cctv.status === "offline"
-                                  ? "OFFLINE"
-                                  : "WARNING"}
-                              </span>
-                            </div>
-
-                            {/* Zone Badge */}
-                            <div className="absolute top-2 right-2">
-                              <span
-                                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                  isDarkMode
-                                    ? "bg-gray-600 text-gray-300"
-                                    : "bg-white text-gray-700"
-                                }`}
-                              >
-                                {cctv.zone}
-                              </span>
-                            </div>
-
-                            {/* Play Button */}
-                            {cctv.status === "online" && (
-                              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/50">
-                                <button className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                              ) : (
+                                <div className="absolute inset-0 flex items-center justify-center">
                                   <svg
-                                    className="w-8 h-8 text-white ml-1"
-                                    fill="currentColor"
+                                    className="w-12 h-12 text-gray-600"
+                                    fill="none"
+                                    stroke="currentColor"
                                     viewBox="0 0 24 24"
                                   >
-                                    <path d="M8 5v14l11-7z" />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                    />
                                   </svg>
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                                </div>
+                              )}
 
-                          {/* CCTV Info */}
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4
-                                className={`font-medium text-sm ${
-                                  isDarkMode ? "text-white" : "text-gray-900"
-                                }`}
-                              >
-                                {cctv.name}
-                              </h4>
-                              <p
-                                className={`text-xs ${
-                                  isDarkMode ? "text-gray-400" : "text-gray-500"
-                                } mt-1`}
-                              >
-                                CCTV-{String(cctv.id).padStart(3, "0")}
-                              </p>
+                              {/* 상태 뱃지 */}
+                              <div className="absolute top-2 left-2">
+                                <span
+                                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    cctv.status === "online"
+                                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                      : cctv.status === "offline"
+                                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                      : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                  }`}
+                                >
+                                  {cctv.status.toUpperCase()}
+                                </span>
+                              </div>
+
+                              {/* 위치 뱃지 */}
+                              <div className="absolute top-2 right-2">
+                                <span
+                                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    isDarkMode
+                                      ? "bg-gray-600 text-gray-300"
+                                      : "bg-white text-gray-700"
+                                  }`}
+                                >
+                                  {cctv.location_name}
+                                </span>
+                              </div>
                             </div>
 
-                            {/* Detail Button */}
-                            <button
-                              className={`p-2 rounded-lg transition-colors ${
-                                isDarkMode
-                                  ? "hover:bg-gray-600 text-gray-400 hover:text-white"
-                                  : "hover:bg-gray-200 text-gray-500 hover:text-gray-700"
-                              }`}
-                              title="상세 보기"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                />
-                              </svg>
-                            </button>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4
+                                  className={`font-medium text-sm ${
+                                    isDarkMode ? "text-white" : "text-gray-900"
+                                  }`}
+                                >
+                                  {cctv.location_name}
+                                </h4>
+                                <p
+                                  className={`text-xs ${
+                                    isDarkMode
+                                      ? "text-gray-400"
+                                      : "text-gray-500"
+                                  } mt-1`}
+                                >
+                                  {cctv.ip_address}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import CCTVManagement from "./CCTVManagement";
 import CCTVGroupManagement from "./CCTVGroupManagement";
 import UserManagement from "./UserManagement";
@@ -17,16 +17,61 @@ function Dashboard({ onLogout }) {
   const [userDrawerTrigger, setUserDrawerTrigger] = useState(null);
 
   const [cctvList, setCctvList] = useState([]);
+  const hasCctvInUnassignedGroup = useMemo(() => {
+    return cctvList.some((cctv) => cctv.groupId === 2);
+  }, [cctvList]);
+  const [undecidedCount, setUndecidedCount] = useState(0);
+  const [increaseRate, setIncreaseRate] = useState(0);
 
-  useEffect(() => {
+  const fetchCctvList = () => {
     fetch("http://localhost:8080/cctvs")
       .then((res) => res.json())
       .then((data) => {
-        console.log("정상 응답:", data);
         setCctvList(data);
       })
-      .catch((err) => console.error("CCTV fetch error:", err));
+      .catch((err) => console.error("CCTV 목록 오류:", err));
+  };
+
+  const fetchDailyCounts = () => {
+    fetch("http://localhost:8080/cctvs/daily-count")
+      .then((res) => res.json())
+      .then((data) => {
+        const today = data.today || 0;
+        const yesterday = data.yesterday || 0;
+        const rate =
+          yesterday > 0
+            ? ((today - yesterday) / yesterday) * 100
+            : today > 0
+            ? 100
+            : 0;
+        setIncreaseRate(rate);
+      })
+      .catch((err) => console.error("일일 증가율 오류:", err));
+  };
+
+  const refreshCctvStats = () => {
+    fetchCctvList(); // CCTVManagement용 목록 // Sidebar용 상태 아이콘 (예: '미정' 그룹 있음 여부)
+    fetchDailyCounts(); // 통계 카드
+  };
+
+  useEffect(() => {
+    refreshCctvStats();
   }, []);
+
+  // ✅ 실제 통계 계산 (useMemo로 최적화)
+  const { totalCount, onlineCount, offlineCount, warningCount } =
+    useMemo(() => {
+      const total = cctvList.length;
+      const online = cctvList.filter((c) => c.status === "ACTIVE").length;
+      const offline = cctvList.filter((c) => c.status === "OFFLINE").length;
+      const warning = cctvList.filter((c) => c.status === "WARNING").length;
+      return {
+        totalCount: total,
+        onlineCount: online,
+        offlineCount: offline,
+        warningCount: warning,
+      };
+    }, [cctvList]);
 
   const menuItems = [
     {
@@ -50,7 +95,14 @@ function Dashboard({ onLogout }) {
     },
     {
       id: "cctv-group",
-      label: "CCTV 그룹 관리",
+      label: (
+        <span className="flex items-center gap-1">
+          CCTV 그룹 관리
+          {hasCctvInUnassignedGroup && (
+            <span className="w-2 h-2 bg-red-500 rounded-full" />
+          )}
+        </span>
+      ),
       icon: (
         <svg
           className="w-5 h-5"
@@ -427,11 +479,14 @@ function Dashboard({ onLogout }) {
             <CCTVGroupManagement
               isDarkMode={isDarkMode}
               onRegisterDrawerTrigger={setCctvGroupDrawerTrigger}
+              onUpdateUndecidedCctvCount={setUndecidedCount}
+              onRefreshCctvs={refreshCctvStats}
             />
           ) : activeMenu === "cctv" ? (
             <CCTVManagement
               isDarkMode={isDarkMode}
               onRegisterDrawerTrigger={setCctvDrawerTrigger}
+              onRefreshCctvs={refreshCctvStats}
             />
           ) : activeMenu === "users" ? (
             <UserManagement
@@ -473,18 +528,35 @@ function Dashboard({ onLogout }) {
                       </svg>
                     </div>
                     <span className="text-xs text-gray-500 font-medium flex items-center">
-                      <svg
-                        className="w-3 h-3 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      +2.6%
+                      {increaseRate > 0 ? (
+                        <svg
+                          className="w-3 h-3 mr-1 text-green-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      ) : increaseRate < 0 ? (
+                        <svg
+                          className="w-3 h-3 mr-1 text-red-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M14.707 10.293a1 1 0 00-1.414 0L11 12.586V5a1 1 0 10-2 0v7.586l-2.293-2.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l4-4a1 1 0 000-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      ) : null}
+                      <span>
+                        {increaseRate > 0 && "+"}
+                        {increaseRate.toFixed(1)}%
+                      </span>
                     </span>
                   </div>
                   <div>
@@ -500,7 +572,7 @@ function Dashboard({ onLogout }) {
                         isDarkMode ? "text-white" : "text-gray-900"
                       } mt-1`}
                     >
-                      156
+                      {totalCount}
                     </p>
                   </div>
                 </div>
@@ -563,7 +635,7 @@ function Dashboard({ onLogout }) {
                         isDarkMode ? "text-white" : "text-gray-900"
                       } mt-1`}
                     >
-                      148
+                      {onlineCount}
                     </p>
                   </div>
                 </div>
@@ -626,7 +698,7 @@ function Dashboard({ onLogout }) {
                         isDarkMode ? "text-white" : "text-gray-900"
                       } mt-1`}
                     >
-                      3
+                      {offlineCount}
                     </p>
                   </div>
                 </div>
@@ -689,7 +761,7 @@ function Dashboard({ onLogout }) {
                         isDarkMode ? "text-white" : "text-gray-900"
                       } mt-1`}
                     >
-                      5
+                      {warningCount}
                     </p>
                   </div>
                 </div>
@@ -722,7 +794,7 @@ function Dashboard({ onLogout }) {
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        총 4대
+                        총 {totalCount}대
                       </span>
                       <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                       <span className="text-xs sm:text-sm text-green-400 font-medium">
@@ -792,7 +864,7 @@ function Dashboard({ onLogout }) {
                                       : "bg-white text-gray-700"
                                   }`}
                                 >
-                                  {cctv.location_name}
+                                  {cctv.locationName}
                                 </span>
                               </div>
                             </div>
@@ -804,7 +876,7 @@ function Dashboard({ onLogout }) {
                                     isDarkMode ? "text-white" : "text-gray-900"
                                   }`}
                                 >
-                                  {cctv.location_name}
+                                  {cctv.locationName}
                                 </h4>
                                 <p
                                   className={`text-xs ${

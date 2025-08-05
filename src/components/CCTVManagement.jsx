@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 
-function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
+function CCTVManagement({
+  isDarkMode,
+  onRegisterDrawerTrigger,
+  onRefreshCctvs,
+}) {
   const [cctvList, setCctvList] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerMode, setDrawerMode] = useState("add"); // "add", "view", "edit"
+  const [drawerMode, setDrawerMode] = useState("add");
   const [selectedCctv, setSelectedCctv] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -16,7 +20,8 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
     roadAddress: "",
   });
 
-  useEffect(() => {
+  // 목록 갱신 함수
+  const fetchCctvList = () => {
     fetch("http://localhost:8080/cctvs")
       .then((res) => res.json())
       .then((data) => {
@@ -29,17 +34,19 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
           longitude: item.longitude,
           latitude: item.latitude,
           roadAddress: item.locationAddress,
-          status:
-            item.status?.toLowerCase() === "active" ? "online" : "offline",
+          status: item.status?.toUpperCase() || "OFFLINE",
         }));
         setCctvList(mapped);
       })
       .catch((err) => {
         console.error("CCTV 목록 불러오기 실패:", err);
       });
+  };
+
+  useEffect(() => {
+    fetchCctvList();
   }, []);
 
-  // Dashboard에서 호출할 수 있도록 drawer 열기 함수 등록
   useEffect(() => {
     if (onRegisterDrawerTrigger) {
       onRegisterDrawerTrigger(() => handleAddCctv);
@@ -48,141 +55,56 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (drawerMode === "edit" && selectedCctv) {
-      // 🔧 수정 모드 - 서버에 PUT 요청 보내기
-      const updatedCctv = {
-        locationName: formData.deviceName,
-        locationAddress: formData.roadAddress,
-        ipAddress: formData.ipAddress,
-        hlsAddress: formData.hlsUrl,
-        longitude: parseFloat(formData.longitude),
-        latitude: parseFloat(formData.latitude),
-      };
+    const cctvPayload = {
+      locationName: formData.deviceName,
+      locationAddress: formData.roadAddress,
+      ipAddress: formData.ipAddress,
+      hlsAddress: formData.hlsUrl,
+      longitude: parseFloat(formData.longitude),
+      latitude: parseFloat(formData.latitude),
+    };
 
-      try {
-        const response = await fetch(
-          `http://localhost:8080/cctvs/${selectedCctv.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedCctv),
-          }
-        );
+    try {
+      let url = "http://localhost:8080/cctvs";
+      let method = "POST";
 
-        if (!response.ok) throw new Error("CCTV 수정 실패");
-
-        const result = await response.json();
-
-        setCctvList((prev) =>
-          prev.map((cctv) =>
-            cctv.id === selectedCctv.id
-              ? {
-                  id: result.id,
-                  deviceName: result.locationName,
-                  ipAddress: result.ipAddress,
-                  location: result.locationAddress,
-                  hlsUrl: result.hlsAddress,
-                  longitude: result.longitude,
-                  latitude: result.latitude,
-                  roadAddress: result.locationAddress,
-                  status:
-                    result.status?.toLowerCase() === "active"
-                      ? "online"
-                      : "offline",
-                }
-              : cctv
-          )
-        );
-
-        setSelectedCctv(null);
-        setIsDrawerOpen(false);
-      } catch (err) {
-        console.error(err);
-        alert("CCTV 수정 중 오류 발생");
+      if (drawerMode === "edit" && selectedCctv) {
+        url += `/${selectedCctv.id}`;
+        method = "PUT";
       }
-    } else {
-      // ✅ 등록 모드 - 서버에 POST 요청 보내기
-      const newCctv = {
-        locationName: formData.deviceName,
-        locationAddress: formData.roadAddress,
-        ipAddress: formData.ipAddress,
-        hlsAddress: formData.hlsUrl,
-        longitude: parseFloat(formData.longitude),
-        latitude: parseFloat(formData.latitude),
-      };
 
-      try {
-        const response = await fetch("http://localhost:8080/cctvs", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newCctv),
-        });
-
-        if (!response.ok) throw new Error("CCTV 등록 실패");
-
-        const result = await response.json();
-
-        setCctvList((prev) => [
-          ...prev,
-          {
-            id: result.id,
-            deviceName: result.locationName,
-            ipAddress: result.ipAddress,
-            location: result.locationAddress,
-            hlsUrl: result.hlsAddress,
-            longitude: result.longitude,
-            latitude: result.latitude,
-            roadAddress: result.locationAddress,
-            status:
-              result.status?.toLowerCase() === "active" ? "online" : "offline",
-          },
-        ]);
-        setIsDrawerOpen(false);
-      } catch (err) {
-        console.error(err);
-        alert("CCTV 등록 중 오류 발생");
-      }
-    }
-
-    // 폼 초기화
-    setFormData({
-      deviceName: "",
-      ipAddress: "",
-      location: "",
-      hlsUrl: "",
-      longitude: "",
-      latitude: "",
-      roadAddress: "",
-    });
-  };
-
-  const handleViewCctv = (cctv) => {
-    setSelectedCctv(cctv);
-    setDrawerMode("view");
-    setIsDrawerOpen(true);
-  };
-
-  const handleEditCctv = () => {
-    if (selectedCctv) {
-      setFormData({
-        deviceName: selectedCctv.deviceName || "",
-        ipAddress: selectedCctv.ipAddress || "",
-        location: selectedCctv.location || "",
-        hlsUrl: selectedCctv.hlsUrl || "",
-        longitude: selectedCctv.longitude || "",
-        latitude: selectedCctv.latitude || "",
-        roadAddress: selectedCctv.roadAddress || "",
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cctvPayload),
       });
-      setDrawerMode("edit");
+
+      if (!response.ok) throw new Error("CCTV 저장 실패");
+
+      // 목록 갱신
+      await onRefreshCctvs?.();
+
+      // 폼 및 상태 초기화
+      setSelectedCctv(null);
+      setIsDrawerOpen(false);
+      setFormData({
+        deviceName: "",
+        ipAddress: "",
+        location: "",
+        hlsUrl: "",
+        longitude: "",
+        latitude: "",
+        roadAddress: "",
+      });
+    } catch (err) {
+      console.error(err);
+      alert("CCTV 저장 중 오류 발생");
     }
   };
 
@@ -197,9 +119,7 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
       })
         .then((res) => {
           if (!res.ok) throw new Error("삭제 실패");
-          setCctvList((prev) =>
-            prev.filter((cctv) => cctv.id !== selectedCctv.id)
-          );
+          onRefreshCctvs?.();
           setShowDeleteModal(false);
           setIsDrawerOpen(false);
           setSelectedCctv(null);
@@ -223,6 +143,28 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
       roadAddress: "",
     });
     setIsDrawerOpen(true);
+  };
+
+  const handleViewCctv = (cctv) => {
+    setSelectedCctv(cctv);
+    setDrawerMode("view");
+    setIsDrawerOpen(true);
+  };
+
+  const handleEditCctv = () => {
+    if (!selectedCctv) return;
+    if (selectedCctv) {
+      setFormData({
+        deviceName: selectedCctv.deviceName || "",
+        ipAddress: selectedCctv.ipAddress || "",
+        location: selectedCctv.location || "",
+        hlsUrl: selectedCctv.hlsUrl || "",
+        longitude: selectedCctv.longitude || "",
+        latitude: selectedCctv.latitude || "",
+        roadAddress: selectedCctv.roadAddress || "",
+      });
+      setDrawerMode("edit");
+    }
   };
 
   return (
@@ -309,12 +251,12 @@ function CCTVManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        cctv.status === "online"
+                        cctv.status === "ACTIVE"
                           ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : "bg-red-500/20 text-red-400 border border-red-500/30"
                       }`}
                     >
-                      {cctv.status === "online" ? "ONLINE" : "OFFLINE"}
+                      {cctv.status === "ACTIVE" ? "ONLINE" : "OFFLINE"}
                     </span>
                   </td>
                 </tr>

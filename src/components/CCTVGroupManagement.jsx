@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 
-function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
+function CCTVGroupManagement({
+  isDarkMode,
+  onRegisterDrawerTrigger,
+  onUpdateUndecidedCctvCount,
+  onRefreshCctvs,
+}) {
+  const UNDECIDED_GROUP_ID = 2;
+  const UNDECIDED_GROUP_NAME = "미정";
   const [groupList, setGroupList] = useState([]);
   const [cctvList, setCctvList] = useState([]);
   const [userList, setUserList] = useState([]);
@@ -12,6 +19,21 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   const [selectedGroupForView, setSelectedGroupForView] = useState(null);
   const [selectedCctv, setSelectedCctv] = useState(null);
   const [cctvDrawerOpen, setCctvDrawerOpen] = useState(false);
+  const getAvailableCctvs = () => {
+    const assigned = new Set();
+
+    groupList.forEach((group) => {
+      if (group.id !== UNDECIDED_GROUP_ID && group.id !== selectedGroup?.id) {
+        (group.cctvIds || []).forEach((id) => assigned.add(id));
+      }
+    });
+
+    return cctvList.filter(
+      (cctv) =>
+        !assigned.has(cctv.id) || formData.selectedCctvs.includes(cctv.id)
+    );
+  };
+
   const [formData, setFormData] = useState({
     groupName: "",
     description: "",
@@ -35,7 +57,13 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
     try {
       const response = await fetch("http://localhost:8080/cctv-groups");
       const data = await response.json();
-      setGroupList(data);
+
+      console.log("✅ groupList 응답:", data); // 여기서 구조를 확인하세요
+
+      // 만약 data가 객체라면 → data.groups 같은 내부 배열로 바꿔줘야 합니다
+      const extracted = Array.isArray(data) ? data : data.groups || [];
+
+      setGroupList(extracted);
     } catch (err) {
       console.error("그룹 목록 불러오기 실패:", err);
       // 샘플 데이터 사용
@@ -77,7 +105,10 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
     try {
       const response = await fetch("http://localhost:8080/users");
       const data = await response.json();
-      setUserList(data);
+
+      const extracted = Array.isArray(data) ? data : data.users || [];
+
+      setUserList(extracted);
     } catch (err) {
       console.error("사용자 목록 불러오기 실패:", err);
       // 샘플 데이터 사용
@@ -219,6 +250,12 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const trimmedName = formData.groupName.trim();
+    if (trimmedName === UNDECIDED_GROUP_NAME) {
+      alert('"미정"은 시스템 예약 그룹명으로 사용할 수 없습니다.');
+      return;
+    }
+
     const groupData = {
       name: formData.groupName,
       description: formData.description,
@@ -227,8 +264,9 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
     };
 
     try {
+      let response;
       if (drawerMode === "edit" && selectedGroup) {
-        const response = await fetch(
+        response = await fetch(
           `http://localhost:8080/cctv-groups/${selectedGroup.id}`,
           {
             method: "PUT",
@@ -236,19 +274,18 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
             body: JSON.stringify(groupData),
           }
         );
-
-        if (!response.ok) throw new Error("그룹 수정 실패");
-        fetchGroups();
       } else {
-        const response = await fetch("http://localhost:8080/cctv-groups", {
+        response = await fetch("http://localhost:8080/cctv-groups", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(groupData),
         });
-
-        if (!response.ok) throw new Error("그룹 등록 실패");
-        fetchGroups();
       }
+
+      if (!response.ok) throw new Error("요청 실패");
+
+      await fetchGroups(); // ✅ 자기 목록 갱신
+      onRefreshCctvs?.(); // ✅ Dashboard도 갱신
 
       setIsDrawerOpen(false);
       resetForm();
@@ -269,41 +306,54 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   };
 
   const handleEditGroup = () => {
-    if (selectedGroup) {
-      setFormData({
-        groupName: selectedGroup.name || "",
-        description: selectedGroup.description || "",
-        selectedCctvs: selectedGroup.cctvIds || [],
-        managerId: selectedGroup.managerId?.toString() || "",
-      });
-      setDrawerMode("edit");
+    if (selectedGroup?.name === UNDECIDED_GROUP_NAME) {
+      alert('"미정" 그룹은 수정할 수 없습니다.');
+      return;
     }
+
+    setFormData({
+      groupName: selectedGroup.name || "",
+      description: selectedGroup.description || "",
+      selectedCctvs: selectedGroup.cctvIds || [],
+      managerId: selectedGroup.managerId?.toString() || "",
+    });
+    setDrawerMode("edit");
   };
 
   const handleDeleteGroup = () => {
+    if (selectedGroup?.name === UNDECIDED_GROUP_NAME) {
+      alert("'미정' 그룹은 삭제할 수 없습니다.");
+      return;
+    }
     setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
-    if (selectedGroup) {
-      try {
-        const response = await fetch(
-          `http://localhost:8080/cctv-groups/${selectedGroup.id}`,
-          {
-            method: "DELETE",
-          }
-        );
+    if (selectedGroup?.name === UNDECIDED_GROUP_NAME) {
+      alert("'미정' 그룹은 삭제할 수 없습니다.");
+      setShowDeleteModal(false);
+      return;
+    }
 
-        if (!response.ok) throw new Error("삭제 실패");
+    try {
+      const response = await fetch(
+        `http://localhost:8080/cctv-groups/${selectedGroup.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-        fetchGroups();
-        setShowDeleteModal(false);
-        setIsDrawerOpen(false);
-        setSelectedGroup(null);
-      } catch (err) {
-        console.error("삭제 요청 실패:", err);
-        alert("그룹 삭제 중 오류가 발생했습니다.");
-      }
+      if (!response.ok) throw new Error("삭제 실패");
+
+      await fetchGroups(); // ✅ 자기 목록 갱신
+      onRefreshCctvs?.(); // ✅ Dashboard도 갱신
+
+      setShowDeleteModal(false);
+      setIsDrawerOpen(false);
+      setSelectedGroup(null);
+    } catch (err) {
+      console.error("삭제 요청 실패:", err);
+      alert("그룹 삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -324,7 +374,8 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   };
 
   const getManagerName = (managerId) => {
-    const manager = userList.find(user => user.id === managerId);
+    if (!Array.isArray(userList)) return "미지정";
+    const manager = userList.find((user) => user.id === managerId);
     return manager ? manager.name : "미지정";
   };
 
@@ -641,8 +692,11 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
               {drawerMode === "view" ? (
                 <button
                   onClick={handleEditGroup}
+                  disabled={selectedGroup?.name === UNDECIDED_GROUP_NAME} // 🔒 "미정"이면 수정 금지
                   className={`p-2 rounded-lg transition-colors ${
-                    isDarkMode
+                    selectedGroup?.name === UNDECIDED_GROUP_NAME
+                      ? "text-gray-400 cursor-not-allowed"
+                      : isDarkMode
                       ? "hover:bg-gray-700 text-gray-400 hover:text-white"
                       : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
                   }`}
@@ -747,7 +801,7 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                       isDarkMode ? "border-gray-600" : "border-gray-300"
                     }`}
                   >
-                    {cctvList.map((cctv) => (
+                    {getAvailableCctvs().map((cctv) => (
                       <label
                         key={cctv.id}
                         className={`flex items-center p-3 cursor-pointer hover:bg-gray-50 ${
@@ -914,8 +968,11 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                 <div className="flex pt-4">
                   <button
                     onClick={handleDeleteGroup}
+                    disabled={selectedGroup?.name === UNDECIDED_GROUP_NAME} // 🔒 미정이면 비활성화
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isDarkMode
+                      selectedGroup?.name === UNDECIDED_GROUP_NAME
+                        ? "bg-gray-400 text-white cursor-not-allowed"
+                        : isDarkMode
                         ? "bg-red-600 hover:bg-red-700 text-white"
                         : "bg-red-600 hover:bg-red-700 text-white"
                     }`}
@@ -1145,7 +1202,9 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                       : "bg-red-500/20 text-red-400 border border-red-500/30"
                   }`}
                 >
-                  {selectedCctv?.status?.toLowerCase() === "online" ? "ONLINE" : "OFFLINE"}
+                  {selectedCctv?.status?.toLowerCase() === "online"
+                    ? "ONLINE"
+                    : "OFFLINE"}
                 </span>
               </div>
 
@@ -1182,7 +1241,8 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    {selectedCctv?.longitude || "N/A"}, {selectedCctv?.latitude || "N/A"}
+                    {selectedCctv?.longitude || "N/A"},{" "}
+                    {selectedCctv?.latitude || "N/A"}
                   </p>
                 </div>
               )}
@@ -1197,8 +1257,10 @@ function CCTVGroupManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                 </label>
                 <div className={`space-y-2`}>
                   {groupList
-                    .filter(group => group.cctvIds?.includes(selectedCctv?.id))
-                    .map(group => (
+                    .filter((group) =>
+                      group.cctvIds?.includes(selectedCctv?.id)
+                    )
+                    .map((group) => (
                       <div
                         key={group.id}
                         className={`p-3 rounded-lg ${

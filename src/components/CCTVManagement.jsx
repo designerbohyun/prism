@@ -89,6 +89,7 @@ function CCTVManagement({
 
       // 목록 갱신
       await onRefreshCctvs?.();
+      fetchCctvList();
 
       // 폼 및 상태 초기화
       setSelectedCctv(null);
@@ -120,6 +121,7 @@ function CCTVManagement({
         .then((res) => {
           if (!res.ok) throw new Error("삭제 실패");
           onRefreshCctvs?.();
+          fetchCctvList();
           setShowDeleteModal(false);
           setIsDrawerOpen(false);
           setSelectedCctv(null);

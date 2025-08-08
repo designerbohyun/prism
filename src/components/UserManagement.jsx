@@ -6,7 +6,25 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   const [selectedStatus, setSelectedStatus] = useState("전체");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [users, setUsers] = useState([
+
+  // 👇 이거 컴포넌트 안에 추가하세요 (useState 등과 같은 위치에)
+    const createSubscription = async (subscriptionData) => {
+        const response = await fetch("http://localhost:8080/api/subscriptions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(subscriptionData),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to create subscription");
+        }
+
+        return await response.json();
+    };
+
+    const [users, setUsers] = useState([
     {
       id: 1,
       name: "김철수",
@@ -146,7 +164,7 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   };
 
   // 폼 제출 처리
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (selectedUser && isEditing) {
@@ -166,8 +184,18 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
       );
       setIsEditing(false);
     } else if (!selectedUser) {
-      // 추가
-      const newUser = {
+        // ✅ 실제 백엔드 연동
+        try {
+            const subscriptionData = {
+                cctvGroupId: 1, // 테스트용 (임의의 CCTV 그룹 ID)
+                userId: Math.floor(Math.random() * 1000), // 테스트용 사용자 ID
+                active: formData.status === "활성",
+            };
+
+            await createSubscription(subscriptionData);
+            alert("✅ 사용자 등록 및 구독 생성 완료");
+
+            const newUser = {
         id: users.length + 1,
         name: formData.name,
         email: formData.email,
@@ -178,6 +206,9 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
       };
       setUsers([...users, newUser]);
       closeDrawer();
+        } catch (error) {
+            alert("❌ 사용자 등록 실패: 백엔드와 연결할 수 없습니다.");
+        }
     }
   };
 

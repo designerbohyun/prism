@@ -8,8 +8,9 @@ npm install
 
 npm install hls.js
 
-
 ## 실행 방법
+
+### 로컬 개발 서버 실행 시
 
 npm start
 

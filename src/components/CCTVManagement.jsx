@@ -22,7 +22,7 @@ function CCTVManagement({
 
   // 목록 갱신 함수
   const fetchCctvList = () => {
-    fetch("http://localhost:8080/cctvs")
+    fetch("${process.env.REACT_APP_API_BASE_URL}/cctvs")
       .then((res) => res.json())
       .then((data) => {
         const mapped = data.map((item) => ({
@@ -71,7 +71,7 @@ function CCTVManagement({
     };
 
     try {
-      let url = "http://localhost:8080/cctvs";
+      let url = "${process.env.REACT_APP_API_BASE_URL}/cctvs";
       let method = "POST";
 
       if (drawerMode === "edit" && selectedCctv) {
@@ -115,7 +115,7 @@ function CCTVManagement({
 
   const confirmDelete = () => {
     if (selectedCctv) {
-      fetch(`http://localhost:8080/cctvs/${selectedCctv.id}`, {
+      fetch(`${process.env.REACT_APP_API_BASE_URL}/cctvs/${selectedCctv.id}`, {
         method: "DELETE",
       })
         .then((res) => {

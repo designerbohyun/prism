@@ -24,7 +24,7 @@ function Dashboard({ onLogout }) {
   const [increaseRate, setIncreaseRate] = useState(0);
 
   const fetchCctvList = () => {
-    fetch("http://localhost:8080/cctvs")
+    fetch("${process.env.REACT_APP_API_BASE_URL}/cctvs")
       .then((res) => res.json())
       .then((data) => {
         setCctvList(data);
@@ -33,7 +33,7 @@ function Dashboard({ onLogout }) {
   };
 
   const fetchDailyCounts = () => {
-    fetch("http://localhost:8080/cctvs/daily-count")
+    fetch("${process.env.REACT_APP_API_BASE_URL}/cctvs/daily-count")
       .then((res) => res.json())
       .then((data) => {
         const today = data.today || 0;

@@ -5,6 +5,7 @@ import UserManagement from "./UserManagement";
 import PrismLightLogo from "../assets/PrismLightLogo";
 import PrismDarkLogo from "../assets/PrismDarkLogo";
 import CctvPlayer from "./CctvPlayer";
+import { API_BASE } from "../apiBase";
 
 function Dashboard({ onLogout }) {
   const [activeMenu, setActiveMenu] = useState("dashboard");
@@ -24,7 +25,7 @@ function Dashboard({ onLogout }) {
   const [increaseRate, setIncreaseRate] = useState(0);
 
   const fetchCctvList = () => {
-    fetch("${process.env.REACT_APP_API_BASE_URL}/cctvs")
+    fetch(`${API_BASE}/cctvs`)
       .then((res) => res.json())
       .then((data) => {
         setCctvList(data);
@@ -33,7 +34,7 @@ function Dashboard({ onLogout }) {
   };
 
   const fetchDailyCounts = () => {
-    fetch("${process.env.REACT_APP_API_BASE_URL}/cctvs/daily-count")
+    fetch(`${API_BASE}/cctvs/daily-count`)
       .then((res) => res.json())
       .then((data) => {
         const today = data.today || 0;

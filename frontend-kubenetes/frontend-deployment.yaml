@@ -16,5 +16,6 @@ spec:
       containers:
         - name: frontend
           image: suggiss/frontend-app:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE } from "../apiBase";
 
 function CCTVManagement({
   isDarkMode,
@@ -22,7 +23,7 @@ function CCTVManagement({
 
   // 목록 갱신 함수
   const fetchCctvList = () => {
-    fetch("${process.env.REACT_APP_API_BASE_URL}/cctvs")
+    fetch(`${API_BASE}/cctvs`)
       .then((res) => res.json())
       .then((data) => {
         const mapped = data.map((item) => ({
@@ -71,7 +72,7 @@ function CCTVManagement({
     };
 
     try {
-      let url = "${process.env.REACT_APP_API_BASE_URL}/cctvs";
+      let url = `${API_BASE}/cctvs`;
       let method = "POST";
 
       if (drawerMode === "edit" && selectedCctv) {
@@ -115,7 +116,7 @@ function CCTVManagement({
 
   const confirmDelete = () => {
     if (selectedCctv) {
-      fetch(`${process.env.REACT_APP_API_BASE_URL}/cctvs/${selectedCctv.id}`, {
+      fetch(`${API_BASE}/cctvs/${selectedCctv.id}`, {
         method: "DELETE",
       })
         .then((res) => {

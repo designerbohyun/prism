@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE } from "../apiBase";
 
 function CCTVGroupManagement({
   isDarkMode,
@@ -55,9 +56,8 @@ function CCTVGroupManagement({
 
   const fetchGroups = async () => {
     try {
-      const response = await fetch(
-        "${process.env.REACT_APP_API_BASE_URL}/cctv-groups"
-      );
+      const response = await fetch(`${API_BASE}/cctv-groups`);
+
       const data = await response.json();
 
       console.log("✅ groupList 응답:", data); // 여기서 구조를 확인하세요
@@ -105,9 +105,7 @@ function CCTVGroupManagement({
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(
-        "${process.env.REACT_APP_API_BASE_URL}/users"
-      );
+      const response = await fetch(`${API_BASE}/users`);
       const data = await response.json();
 
       const extracted = Array.isArray(data) ? data : data.users || [];
@@ -152,9 +150,7 @@ function CCTVGroupManagement({
 
   const fetchCctvs = async () => {
     try {
-      const response = await fetch(
-        "${process.env.REACT_APP_API_BASE_URL}/cctvs"
-      );
+      const response = await fetch(`${API_BASE}/cctvs`);
       const data = await response.json();
       setCctvList(data);
     } catch (err) {
@@ -272,23 +268,17 @@ function CCTVGroupManagement({
     try {
       let response;
       if (drawerMode === "edit" && selectedGroup) {
-        response = await fetch(
-          `${process.env.REACT_APP_API_BASE_URL}/cctv-groups/${selectedGroup.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(groupData),
-          }
-        );
+        response = await fetch(`${API_BASE}/cctv-groups/${selectedGroup.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(groupData),
+        });
       } else {
-        response = await fetch(
-          "${process.env.REACT_APP_API_BASE_URL}/cctv-groups",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(groupData),
-          }
-        );
+        response = await fetch(`${API_BASE}/cctv-groups`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(groupData),
+        });
       }
 
       if (!response.ok) throw new Error("요청 실패");
@@ -346,7 +336,7 @@ function CCTVGroupManagement({
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/cctv-groups/${selectedGroup.id}`,
+        `${API_BASE}/cctv-groups/${selectedGroup.id}`,
         {
           method: "DELETE",
         }

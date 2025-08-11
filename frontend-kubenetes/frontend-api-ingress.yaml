@@ -1,19 +1,21 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: frontend
+  name: frontend-api
   namespace: front
-  # annotations:   # ← 이 블록 자체를 제거
-  #   nginx.ingress.kubernetes.io/rewrite-target: /
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
+  ingressClassName: nginx
   rules:
     - host: frontend.cccr4.com
       http:
         paths:
-          - path: /
+          - path: /api(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: frontend
+                name: backend-external
                 port:
                   number: 80

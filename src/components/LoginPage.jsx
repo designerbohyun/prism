@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 function PrismLogin({ onLoginSuccess }) {
   const [email, setEmail] = useState("");
@@ -77,7 +78,7 @@ function PrismLogin({ onLoginSuccess }) {
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className={`w-full py-3 mt-6 text-white text-sm font-medium rounded transition-colors ${
+            className={`w-full py-3 mt-6 text-white text-sm font-medium rounded transition-colors hover:cursor-pointer ${
               isLoading
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"
@@ -85,6 +86,15 @@ function PrismLogin({ onLoginSuccess }) {
           >
             {isLoading ? "로그인 중..." : "로그인"}
           </button>
+
+          <div className="text-center mt-4">
+            <Link
+              to="/password-reset"
+              className="text-sm text-gray-600 hover:text-gray-800 underline"
+            >
+              비밀번호를 잊으셨나요?
+            </Link>
+          </div>
         </div>
       </div>
     </div>

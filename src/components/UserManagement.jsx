@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 
 function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPermission, setSelectedPermission] = useState("전체");
-  const [selectedStatus, setSelectedStatus] = useState("전체");
+  const [searchTerm] = useState("");
+  const [selectedPermission] = useState("전체");
+  const [selectedStatus] = useState("전체");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([
@@ -87,7 +87,6 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   });
 
   const permissions = ["전체", "관리자", "네트워크 관리자", "장치 관리자"];
-  const statuses = ["전체", "활성", "비활성"];
 
   // 사용자 추가/수정 drawer 열기
   const openDrawer = (user = null) => {

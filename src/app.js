@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import PrismLogin from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
+import PasswordReset from "./components/PasswordReset";
 
 const STORAGE_KEY = "prism_login_state";
 
@@ -68,13 +70,44 @@ function App() {
   }
 
   return (
-    <div>
-      {isLoggedIn ? (
-        <Dashboard onLogout={handleLogout} />
-      ) : (
-        <PrismLogin onLoginSuccess={handleLoginSuccess} />
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={
+            isLoggedIn ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <PrismLogin onLoginSuccess={handleLoginSuccess} />
+            )
+          } 
+        />
+        <Route 
+          path="/password-reset" 
+          element={
+            isLoggedIn ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <PasswordReset />
+            )
+          } 
+        />
+        <Route 
+          path="/dashboard" 
+          element={
+            isLoggedIn ? (
+              <Dashboard onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+        <Route 
+          path="/" 
+          element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />} 
+        />
+      </Routes>
+    </Router>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE } from "../apiBase";
+import CctvPlayer from "./CctvPlayer";
 
 function CCTVGroupManagement({
   isDarkMode,
@@ -16,10 +17,10 @@ function CCTVGroupManagement({
   const [drawerMode, setDrawerMode] = useState("add");
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [currentView, setCurrentView] = useState("groups");
-  const [selectedGroupForView, setSelectedGroupForView] = useState(null);
-  const [selectedCctv, setSelectedCctv] = useState(null);
-  const [cctvDrawerOpen, setCctvDrawerOpen] = useState(false);
+  const [viewMode, setViewMode] = useState("list"); // list or card
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchDate, setSearchDate] = useState("");
+  
   const getAvailableCctvs = () => {
     const assigned = new Set();
 
@@ -39,7 +40,7 @@ function CCTVGroupManagement({
     groupName: "",
     description: "",
     selectedCctvs: [],
-    managerId: "",
+    managerIds: [],
   });
 
   useEffect(() => {
@@ -57,15 +58,16 @@ function CCTVGroupManagement({
   const fetchGroups = async () => {
     try {
       const response = await fetch(`${API_BASE}/cctv-groups`);
-
       const data = await response.json();
-
-      console.log("✅ groupList 응답:", data); // 여기서 구조를 확인하세요
-
-      // 만약 data가 객체라면 → data.groups 같은 내부 배열로 바꿔줘야 합니다
       const extracted = Array.isArray(data) ? data : data.groups || [];
-
-      setGroupList(extracted);
+      
+      // 등록일자 추가 (샘플용)
+      const groupsWithDate = extracted.map((group, index) => ({
+        ...group,
+        createdAt: group.createdAt || new Date(Date.now() - index * 86400000).toISOString()
+      }));
+      
+      setGroupList(groupsWithDate);
     } catch (err) {
       console.error("그룹 목록 불러오기 실패:", err);
       // 샘플 데이터 사용
@@ -74,29 +76,37 @@ function CCTVGroupManagement({
           id: 1,
           name: "본사 1층",
           description: "본사 건물 1층 로비 및 복도 CCTV 그룹",
-          cctvIds: [1, 2, 3],
+          cctvIds: [1, 2, 3, 4],
           managerId: 1,
+          createdAt: "2024-01-15T09:00:00Z",
+          managers: [1, 2] // 담당자 여러명
         },
         {
           id: 2,
           name: "본사 2층",
           description: "본사 건물 2층 사무실 및 회의실 CCTV 그룹",
-          cctvIds: [4, 5],
+          cctvIds: [5, 6],
           managerId: 2,
+          createdAt: "2024-01-16T10:30:00Z",
+          managers: [2]
         },
         {
           id: 3,
           name: "주차장",
           description: "지하 및 지상 주차장 전체 CCTV 그룹",
-          cctvIds: [6, 7, 8],
+          cctvIds: [7, 8, 9],
           managerId: 3,
+          createdAt: "2024-01-17T14:00:00Z",
+          managers: [3, 4]
         },
         {
           id: 4,
           name: "출입구",
           description: "건물 주출입구 및 비상구 CCTV 그룹",
-          cctvIds: [9, 10],
+          cctvIds: [10, 11],
           managerId: 1,
+          createdAt: "2024-01-18T08:00:00Z",
+          managers: [1]
         },
       ];
       setGroupList(sampleGroups);
@@ -107,9 +117,7 @@ function CCTVGroupManagement({
     try {
       const response = await fetch(`${API_BASE}/users`);
       const data = await response.json();
-
       const extracted = Array.isArray(data) ? data : data.users || [];
-
       setUserList(extracted);
     } catch (err) {
       console.error("사용자 목록 불러오기 실패:", err);
@@ -162,14 +170,16 @@ function CCTVGroupManagement({
           locationName: "1층 로비 CCTV-01",
           locationAddress: "본사 1층 정문 로비",
           ipAddress: "192.168.1.101",
-          status: "ONLINE",
+          status: "ACTIVE",
+          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
         },
         {
           id: 2,
           locationName: "1층 복도 CCTV-02",
           locationAddress: "본사 1층 중앙 복도",
           ipAddress: "192.168.1.102",
-          status: "ONLINE",
+          status: "ACTIVE",
+          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
         },
         {
           id: 3,
@@ -180,52 +190,62 @@ function CCTVGroupManagement({
         },
         {
           id: 4,
-          locationName: "2층 사무실 CCTV-04",
-          locationAddress: "본사 2층 개발팀 사무실",
+          locationName: "1층 비상구 CCTV-04",
+          locationAddress: "본사 1층 비상구",
           ipAddress: "192.168.1.104",
-          status: "ONLINE",
+          status: "ACTIVE",
+          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
         },
         {
           id: 5,
-          locationName: "2층 회의실 CCTV-05",
-          locationAddress: "본사 2층 대회의실",
+          locationName: "2층 사무실 CCTV-05",
+          locationAddress: "본사 2층 개발팀 사무실",
           ipAddress: "192.168.1.105",
-          status: "ONLINE",
+          status: "ACTIVE",
+          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
         },
         {
           id: 6,
-          locationName: "지하주차장 A구역 CCTV-06",
-          locationAddress: "지하 1층 주차장 A구역",
+          locationName: "2층 회의실 CCTV-06",
+          locationAddress: "본사 2층 대회의실",
           ipAddress: "192.168.1.106",
-          status: "ONLINE",
+          status: "ACTIVE",
         },
         {
           id: 7,
-          locationName: "지하주차장 B구역 CCTV-07",
-          locationAddress: "지하 1층 주차장 B구역",
+          locationName: "지하주차장 A구역 CCTV-07",
+          locationAddress: "지하 1층 주차장 A구역",
           ipAddress: "192.168.1.107",
-          status: "OFFLINE",
+          status: "ACTIVE",
         },
         {
           id: 8,
-          locationName: "지상주차장 CCTV-08",
-          locationAddress: "지상 주차장 입구",
+          locationName: "지하주차장 B구역 CCTV-08",
+          locationAddress: "지하 1층 주차장 B구역",
           ipAddress: "192.168.1.108",
-          status: "ONLINE",
+          status: "OFFLINE",
         },
         {
           id: 9,
-          locationName: "정문 CCTV-09",
-          locationAddress: "건물 정문 출입구",
+          locationName: "지상주차장 CCTV-09",
+          locationAddress: "지상 주차장 입구",
           ipAddress: "192.168.1.109",
-          status: "ONLINE",
+          status: "ACTIVE",
         },
         {
           id: 10,
-          locationName: "후문 CCTV-10",
-          locationAddress: "건물 후문 비상구",
+          locationName: "정문 CCTV-10",
+          locationAddress: "건물 정문 출입구",
           ipAddress: "192.168.1.110",
-          status: "ONLINE",
+          status: "ACTIVE",
+          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+        },
+        {
+          id: 11,
+          locationName: "후문 CCTV-11",
+          locationAddress: "건물 후문 비상구",
+          ipAddress: "192.168.1.111",
+          status: "ACTIVE",
         },
       ];
       setCctvList(sampleCctvs);
@@ -262,7 +282,9 @@ function CCTVGroupManagement({
       name: formData.groupName,
       description: formData.description,
       cctvIds: formData.selectedCctvs,
-      managerId: parseInt(formData.managerId) || null,
+      managerId: formData.managerIds.length > 0 ? formData.managerIds[0] : null, // 첫 번째 담당자를 주 담당자로
+      managers: formData.managerIds,
+      createdAt: new Date().toISOString(),
     };
 
     try {
@@ -283,8 +305,8 @@ function CCTVGroupManagement({
 
       if (!response.ok) throw new Error("요청 실패");
 
-      await fetchGroups(); // ✅ 자기 목록 갱신
-      onRefreshCctvs?.(); // ✅ Dashboard도 갱신
+      await fetchGroups();
+      onRefreshCctvs?.();
 
       setIsDrawerOpen(false);
       resetForm();
@@ -314,7 +336,7 @@ function CCTVGroupManagement({
       groupName: selectedGroup.name || "",
       description: selectedGroup.description || "",
       selectedCctvs: selectedGroup.cctvIds || [],
-      managerId: selectedGroup.managerId?.toString() || "",
+      managerIds: selectedGroup.managers || (selectedGroup.managerId ? [selectedGroup.managerId] : []),
     });
     setDrawerMode("edit");
   };
@@ -344,8 +366,8 @@ function CCTVGroupManagement({
 
       if (!response.ok) throw new Error("삭제 실패");
 
-      await fetchGroups(); // ✅ 자기 목록 갱신
-      onRefreshCctvs?.(); // ✅ Dashboard도 갱신
+      await fetchGroups();
+      onRefreshCctvs?.();
 
       setShowDeleteModal(false);
       setIsDrawerOpen(false);
@@ -368,267 +390,343 @@ function CCTVGroupManagement({
       groupName: "",
       description: "",
       selectedCctvs: [],
-      managerId: "",
+      managerIds: [],
     });
   };
 
-  const getManagerName = (managerId) => {
-    if (!Array.isArray(userList)) return "미지정";
-    const manager = userList.find((user) => user.id === managerId);
-    return manager ? manager.name : "미지정";
+  const getManagerNames = (managerIds = []) => {
+    if (!Array.isArray(userList) || !managerIds.length) return "미지정";
+    const managers = userList.filter((user) => managerIds.includes(user.id));
+    return managers.length > 0 ? managers.map(m => m.name).join(", ") : "미지정";
   };
 
-  const handleGroupClick = (group) => {
-    setSelectedGroupForView(group);
-    setCurrentView("cctvs");
+  const getManagersCount = (group) => {
+    return group.managers?.length || (group.managerId ? 1 : 0);
   };
 
-  const handleBackToGroups = () => {
-    setCurrentView("groups");
-    setSelectedGroupForView(null);
+  const handleManagerSelection = (managerId) => {
+    setFormData((prev) => ({
+      ...prev,
+      managerIds: prev.managerIds.includes(managerId)
+        ? prev.managerIds.filter((id) => id !== managerId)
+        : [...prev.managerIds, managerId],
+    }));
   };
 
-  const getGroupCctvs = () => {
-    if (!selectedGroupForView) return [];
-    return cctvList.filter((cctv) =>
-      selectedGroupForView.cctvIds?.includes(cctv.id)
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  // 검색 필터링
+  const filteredGroups = groupList.filter((group) => {
+    const matchesName = group.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDate = !searchDate || formatDate(group.createdAt).includes(searchDate);
+    return matchesName && matchesDate;
+  });
+
+  // 그룹의 CCTV 4개 가져오기
+  const getGroupCctvs = (group, limit = 4) => {
+    const groupCctvs = cctvList.filter((cctv) => 
+      group.cctvIds?.includes(cctv.id)
     );
-  };
-
-  const handleViewCctv = (cctv) => {
-    setSelectedCctv(cctv);
-    setCctvDrawerOpen(true);
+    return groupCctvs.slice(0, limit);
   };
 
   return (
     <div className="space-y-6">
-      {currentView === "groups" ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groupList.map((group) => (
-              <div
-                key={group.id}
-                onClick={() => handleGroupClick(group)}
-                className={`p-6 rounded-lg border cursor-pointer transition-all hover:shadow-lg ${
-                  isDarkMode
-                    ? "bg-gray-800 border-gray-700 hover:border-teal-600"
-                    : "bg-white border-gray-200 hover:border-teal-500"
-                }`}
+      {/* 검색 및 뷰 모드 토글 */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="그룹명 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`px-4 py-2 rounded-lg border ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            } focus:outline-none focus:ring-2 focus:ring-teal-500`}
+          />
+          <input
+            type="date"
+            value={searchDate}
+            onChange={(e) => setSearchDate(e.target.value)}
+            className={`px-4 py-2 rounded-lg border ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            } focus:outline-none focus:ring-2 focus:ring-teal-500`}
+          />
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`p-2 rounded-lg transition-colors ${
+              viewMode === "list"
+                ? "bg-teal-600 text-white"
+                : isDarkMode
+                ? "bg-gray-700 text-gray-400 hover:text-white"
+                : "bg-gray-200 text-gray-600 hover:text-gray-900"
+            }`}
+            title="리스트 보기"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setViewMode("card")}
+            className={`p-2 rounded-lg transition-colors ${
+              viewMode === "card"
+                ? "bg-teal-600 text-white"
+                : isDarkMode
+                ? "bg-gray-700 text-gray-400 hover:text-white"
+                : "bg-gray-200 text-gray-600 hover:text-gray-900"
+            }`}
+            title="카드 보기"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* 데이터가 없는 경우 */}
+      {filteredGroups.length === 0 ? (
+        <div className={`${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-gray-200"
+        } border rounded-lg p-16`}>
+          <div className="flex flex-col items-center justify-center">
+            <svg
+              className={`w-20 h-20 ${
+                isDarkMode ? "text-gray-600" : "text-gray-400"
+              } mb-4`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              />
+            </svg>
+            <h4
+              className={`text-lg font-medium ${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              } mb-2`}
+            >
+              등록된 그룹이 없습니다
+            </h4>
+            <p
+              className={`text-sm ${
+                isDarkMode ? "text-gray-500" : "text-gray-500"
+              } text-center max-w-md mb-6`}
+            >
+              {searchQuery || searchDate 
+                ? "검색 조건에 맞는 그룹이 없습니다."
+                : "상단의 '그룹 추가' 버튼을 클릭하여 새로운 CCTV 그룹을 등록해주세요."}
+            </p>
+            {!(searchQuery || searchDate) && (
+              <button
+                onClick={handleAddGroup}
+                className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center space-x-2"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <h3
-                    className={`text-lg font-semibold ${
-                      isDarkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                <span>그룹 추가</span>
+              </button>
+            )}
+          </div>
+        </div>
+      ) : viewMode === "list" ? (
+        /* 리스트 뷰 */
+        <div className={`${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-gray-200"
+        } border rounded-lg overflow-hidden`}>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className={`${isDarkMode ? "bg-gray-700" : "bg-gray-50"}`}>
+                <tr>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDarkMode ? "text-gray-300" : "text-gray-500"
+                  }`}>
+                    순번
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDarkMode ? "text-gray-300" : "text-gray-500"
+                  }`}>
+                    그룹명
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDarkMode ? "text-gray-300" : "text-gray-500"
+                  }`}>
+                    할당된 CCTV
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDarkMode ? "text-gray-300" : "text-gray-500"
+                  }`}>
+                    담당자 수
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDarkMode ? "text-gray-300" : "text-gray-500"
+                  }`}>
+                    등록일자
+                  </th>
+                </tr>
+              </thead>
+              <tbody className={`${isDarkMode ? "bg-gray-800" : "bg-white"} divide-y ${
+                isDarkMode ? "divide-gray-700" : "divide-gray-200"
+              }`}>
+                {filteredGroups.map((group, index) => (
+                  <tr key={group.id} className="hover:cursor-pointer" onClick={() => handleViewGroup(group)}>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}>
+                      {index + 1}
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                      isDarkMode ? "text-white hover:text-teal-400" : "text-gray-900 hover:text-teal-600"
+                    } transition-colors underline`}>
+                      {group.name}
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}>
+                      {group.cctvIds?.length || 0}대
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}>
+                      {getManagersCount(group)}명
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}>
+                      {formatDate(group.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        /* 카드 뷰 */
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredGroups.map((group) => (
+            <div
+              key={group.id}
+              className={`rounded-lg border ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-700"
+                  : "bg-white border-gray-200"
+              } overflow-hidden`}
+            >
+              {/* 카드 헤더 */}
+              <div className={`p-4 border-b ${
+                isDarkMode ? "border-gray-700" : "border-gray-200"
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`text-lg font-semibold ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}>
                     {group.name}
                   </h3>
-                  <svg
-                    className={`w-5 h-5 ${
-                      isDarkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                    />
-                  </svg>
-                </div>
-                <p
-                  className={`text-sm mb-3 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
-                  {group.description || "설명 없음"}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
-                    >
-                      CCTV {group.cctvIds?.length || 0}대
-                    </span>
-                    <br />
-                    <span
-                      className={`text-xs ${
-                        isDarkMode ? "text-gray-500" : "text-gray-400"
-                      }`}
-                    >
-                      담당자: {getManagerName(group.managerId)}
-                    </span>
-                  </div>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewGroup(group);
-                    }}
+                    onClick={() => handleViewGroup(group)}
                     className={`p-2 rounded-lg transition-colors ${
                       isDarkMode
                         ? "hover:bg-gray-700 text-gray-400 hover:text-white"
                         : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
                     }`}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                     </svg>
                   </button>
                 </div>
+                <p className={`text-sm ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}>
+                  {group.description || "설명 없음"}
+                </p>
+                <div className="flex items-center gap-4 mt-3 text-sm">
+                  <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+                    CCTV {group.cctvIds?.length || 0}대
+                  </span>
+                  <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+                    담당자 {getManagersCount(group)}명
+                  </span>
+                  <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+                    {formatDate(group.createdAt)}
+                  </span>
+                </div>
               </div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="flex items-center gap-2 mb-4">
-            <button
-              onClick={handleBackToGroups}
-              className={`flex items-center justify-center w-11 h-11 text-sm font-medium rounded-lg transition-colors ${
-                isDarkMode
-                  ? "bg-gray-700 hover:bg-gray-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              }`}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <h3
-              className={`text-md font-semibold ${
-                isDarkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {selectedGroupForView?.name} - CCTV 목록
-            </h3>
-          </div>
-          <div
-            className={`${
-              isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
-            } border rounded-lg overflow-hidden`}
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead
-                  className={`${isDarkMode ? "bg-gray-700" : "bg-gray-50"}`}
-                >
-                  <tr>
-                    <th
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDarkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
-                    >
-                      장치명
-                    </th>
-                    <th
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDarkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
-                    >
-                      IP 주소
-                    </th>
-                    <th
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDarkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
-                    >
-                      설치 위치
-                    </th>
-                    <th
-                      className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDarkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
-                    >
-                      상태
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  className={`${
-                    isDarkMode ? "bg-gray-800" : "bg-white"
-                  } divide-y ${
-                    isDarkMode ? "divide-gray-700" : "divide-gray-200"
-                  }`}
-                >
-                  {getGroupCctvs().map((cctv) => (
-                    <tr key={cctv.id}>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                          isDarkMode ? "text-white" : "text-gray-900"
-                        }`}
-                      >
-                        <button
-                          onClick={() => handleViewCctv(cctv)}
-                          className={`underline cursor-pointer font-semibold ${
-                            isDarkMode
-                              ? "text-gray-400 hover:text-gray-300"
-                              : "text-gray-600 hover:text-gray-700"
-                          }`}
-                        >
-                          {cctv.locationName}
-                        </button>
-                      </td>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm ${
-                          isDarkMode ? "text-gray-300" : "text-gray-600"
-                        }`}
-                      >
-                        {cctv.ipAddress}
-                      </td>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm ${
-                          isDarkMode ? "text-gray-300" : "text-gray-600"
-                        }`}
-                      >
-                        {cctv.locationAddress}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            cctv.status?.toLowerCase() === "ACTIVE"
-                              ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                              : "bg-red-500/20 text-red-400 border border-red-500/30"
-                          }`}
-                        >
-                          {cctv.status?.toLowerCase() === "ACTIVE"
-                            ? "ONLINE"
-                            : "OFFLINE"}
-                        </span>
-                      </td>
-                    </tr>
+              
+              {/* CCTV 미리보기 그리드 */}
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-2">
+                  {getGroupCctvs(group).map((cctv) => (
+                    <div key={cctv.id} className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                      {cctv.status === "ACTIVE" && cctv.hlsAddress ? (
+                        <div className="relative w-full h-full">
+                          <CctvPlayer src={cctv.hlsAddress} />
+                          <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                            {cctv.locationName}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <svg className="w-8 h-8 text-gray-600 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-xs text-gray-600">
+                              {cctv.status === "OFFLINE" ? "오프라인" : "신호 없음"}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                  {/* 빈 슬롯 채우기 */}
+                  {Array.from({ length: Math.max(0, 4 - getGroupCctvs(group).length) }).map((_, index) => (
+                    <div key={`empty-${index}`} className={`aspect-video rounded-lg flex items-center justify-center ${
+                      isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                    }`}>
+                      <span className={`text-xs ${
+                        isDarkMode ? "text-gray-500" : "text-gray-400"
+                      }`}>
+                        빈 슬롯
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </>
+          ))}
+        </div>
       )}
 
       {/* Drawer */}
@@ -691,7 +789,7 @@ function CCTVGroupManagement({
               {drawerMode === "view" ? (
                 <button
                   onClick={handleEditGroup}
-                  disabled={selectedGroup?.name === UNDECIDED_GROUP_NAME} // 🔒 "미정"이면 수정 금지
+                  disabled={selectedGroup?.name === UNDECIDED_GROUP_NAME}
                   className={`p-2 rounded-lg transition-colors ${
                     selectedGroup?.name === UNDECIDED_GROUP_NAME
                       ? "text-gray-400 cursor-not-allowed"
@@ -831,25 +929,36 @@ function CCTVGroupManagement({
                       isDarkMode ? "text-gray-300" : "text-gray-700"
                     }`}
                   >
-                    담당자
+                    담당자 ({formData.managerIds.length}명 선택됨)
                   </label>
-                  <select
-                    name="managerId"
-                    value={formData.managerId}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                      isDarkMode
-                        ? "bg-gray-700 border-gray-600 text-white"
-                        : "bg-white border-gray-300 text-gray-900"
+                  <div
+                    className={`border rounded-lg max-h-48 overflow-y-auto ${
+                      isDarkMode ? "border-gray-600" : "border-gray-300"
                     }`}
                   >
-                    <option value="">담당자를 선택해주세요</option>
                     {userList.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name} ({user.username}) - {user.role}
-                      </option>
+                      <label
+                        key={user.id}
+                        className={`flex items-center p-3 cursor-pointer hover:bg-gray-50 ${
+                          isDarkMode ? "hover:bg-gray-700" : ""
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.managerIds.includes(user.id)}
+                          onChange={() => handleManagerSelection(user.id)}
+                          className="mr-3"
+                        />
+                        <span
+                          className={`text-sm ${
+                            isDarkMode ? "text-gray-300" : "text-gray-700"
+                          }`}
+                        >
+                          {user.name} ({user.username}) - {user.role}
+                        </span>
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
                 <div className="flex space-x-4 pt-4">
@@ -914,14 +1023,14 @@ function CCTVGroupManagement({
                       isDarkMode ? "text-gray-300" : "text-gray-700"
                     }`}
                   >
-                    담당자
+                    담당자 ({getManagersCount(selectedGroup)}명)
                   </label>
                   <p
                     className={`text-sm ${
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    {getManagerName(selectedGroup?.managerId)}
+                    {getManagerNames(selectedGroup?.managers || (selectedGroup?.managerId ? [selectedGroup.managerId] : []))}
                   </p>
                 </div>
 
@@ -931,7 +1040,24 @@ function CCTVGroupManagement({
                       isDarkMode ? "text-gray-300" : "text-gray-700"
                     }`}
                   >
-                    포함된 CCTV
+                    등록일자
+                  </label>
+                  <p
+                    className={`text-sm ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {selectedGroup?.createdAt ? formatDate(selectedGroup.createdAt) : "미지정"}
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    포함된 CCTV ({selectedGroup?.cctvIds?.length || 0}대)
                   </label>
                   <div className={`space-y-2 max-h-64 overflow-y-auto`}>
                     {cctvList
@@ -967,7 +1093,7 @@ function CCTVGroupManagement({
                 <div className="flex pt-4">
                   <button
                     onClick={handleDeleteGroup}
-                    disabled={selectedGroup?.name === UNDECIDED_GROUP_NAME} // 🔒 미정이면 비활성화
+                    disabled={selectedGroup?.name === UNDECIDED_GROUP_NAME}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       selectedGroup?.name === UNDECIDED_GROUP_NAME
                         ? "bg-gray-400 text-white cursor-not-allowed"
@@ -1052,236 +1178,6 @@ function CCTVGroupManagement({
                   >
                     삭제
                   </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* CCTV 상세 정보 Drawer */}
-      {cctvDrawerOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setCctvDrawerOpen(false)}
-          />
-
-          <div
-            className={`fixed right-0 top-0 h-full w-full max-w-md z-50 transform transition-transform duration-300 ease-in-out ${
-              isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
-            } border-l shadow-xl overflow-y-auto`}
-          >
-            <div
-              className={`px-6 py-4 border-b ${
-                isDarkMode ? "border-gray-700" : "border-gray-200"
-              } flex items-center justify-between`}
-            >
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setCctvDrawerOpen(false)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isDarkMode
-                      ? "hover:bg-gray-700 text-gray-400 hover:text-white"
-                      : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-                <h3
-                  className={`text-lg font-semibold ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  CCTV 상세 정보
-                </h3>
-              </div>
-              <button
-                onClick={() => setCctvDrawerOpen(false)}
-                className={`p-2 rounded-lg transition-colors ${
-                  isDarkMode
-                    ? "hover:bg-gray-700 text-gray-400 hover:text-white"
-                    : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  장치명
-                </label>
-                <p
-                  className={`text-sm ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {selectedCctv?.locationName}
-                </p>
-              </div>
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  IP 주소
-                </label>
-                <p
-                  className={`text-sm ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {selectedCctv?.ipAddress}
-                </p>
-              </div>
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  설치 위치
-                </label>
-                <p
-                  className={`text-sm ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {selectedCctv?.locationAddress}
-                </p>
-              </div>
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  상태
-                </label>
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    selectedCctv?.status?.toLowerCase() === "ACTIVE"
-                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                      : "bg-red-500/20 text-red-400 border border-red-500/30"
-                  }`}
-                >
-                  {selectedCctv?.status?.toLowerCase() === "ACTIVE"
-                    ? "ONLINE"
-                    : "OFFLINE"}
-                </span>
-              </div>
-
-              {selectedCctv?.hlsAddress && (
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-1 ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    HLS 스트리밍 URL
-                  </label>
-                  <p
-                    className={`text-sm break-all ${
-                      isDarkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {selectedCctv.hlsAddress}
-                  </p>
-                </div>
-              )}
-
-              {(selectedCctv?.longitude || selectedCctv?.latitude) && (
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-1 ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    좌표 (경도, 위도)
-                  </label>
-                  <p
-                    className={`text-sm ${
-                      isDarkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {selectedCctv?.longitude || "N/A"},{" "}
-                    {selectedCctv?.latitude || "N/A"}
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  소속 그룹
-                </label>
-                <div className={`space-y-2`}>
-                  {groupList
-                    .filter((group) =>
-                      group.cctvIds?.includes(selectedCctv?.id)
-                    )
-                    .map((group) => (
-                      <div
-                        key={group.id}
-                        className={`p-3 rounded-lg ${
-                          isDarkMode ? "bg-gray-700" : "bg-gray-50"
-                        }`}
-                      >
-                        <p
-                          className={`text-sm font-medium ${
-                            isDarkMode ? "text-white" : "text-gray-900"
-                          }`}
-                        >
-                          {group.name}
-                        </p>
-                        <p
-                          className={`text-xs ${
-                            isDarkMode ? "text-gray-400" : "text-gray-500"
-                          }`}
-                        >
-                          {group.description}
-                        </p>
-                      </div>
-                    ))}
                 </div>
               </div>
             </div>

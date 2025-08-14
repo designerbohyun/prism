@@ -181,91 +181,129 @@ function CCTVManagement({
         } border rounded-lg overflow-hidden`}
       >
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className={`${isDarkMode ? "bg-gray-700" : "bg-gray-50"} `}>
-              <tr>
-                <th
-                  className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? "text-gray-300" : "text-gray-500"
-                  }`}
-                >
-                  장치명
-                </th>
-                <th
-                  className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? "text-gray-300" : "text-gray-500"
-                  }`}
-                >
-                  IP 주소
-                </th>
-                <th
-                  className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? "text-gray-300" : "text-gray-500"
-                  }`}
-                >
-                  설치 위치
-                </th>
-                <th
-                  className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? "text-gray-300" : "text-gray-500"
-                  }`}
-                >
-                  상태
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              className={`${isDarkMode ? "bg-gray-800" : "bg-white"} divide-y ${
-                isDarkMode ? "divide-gray-700" : "divide-gray-200"
-              }`}
-            >
-              {cctvList.map((cctv) => (
-                <tr key={cctv.id}>
-                  <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                      isDarkMode ? "text-white" : "text-gray-900"
+          {cctvList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <svg
+                className={`w-20 h-20 ${
+                  isDarkMode ? "text-gray-600" : "text-gray-400"
+                } mb-4`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              <h4
+                className={`text-lg font-medium ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                } mb-2`}
+              >
+                등록된 CCTV가 없습니다
+              </h4>
+              <p
+                className={`text-sm ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                } text-center max-w-md mb-6`}
+              >
+                상단의 'CCTV 등록' 버튼을 클릭하여 새로운 CCTV를 등록해주세요.
+              </p>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead
+                className={`${isDarkMode ? "bg-gray-700" : "bg-gray-50"} `}
+              >
+                <tr>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDarkMode ? "text-gray-300" : "text-gray-500"
                     }`}
                   >
-                    <button
-                      onClick={() => handleViewCctv(cctv)}
-                      className={`underline cursor-pointer font-semibold ${
-                        isDarkMode
-                          ? "text-gray-400 hover:text-gray-300"
-                          : "text-gray-600 hover:text-gray-700"
-                      }`}
-                    >
-                      {cctv.deviceName}
-                    </button>
-                  </td>
-                  <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    장치명
+                  </th>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDarkMode ? "text-gray-300" : "text-gray-500"
                     }`}
                   >
-                    {cctv.ipAddress}
-                  </td>
-                  <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    IP 주소
+                  </th>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDarkMode ? "text-gray-300" : "text-gray-500"
                     }`}
                   >
-                    {cctv.location}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        cctv.status === "ACTIVE"
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}
-                    >
-                      {cctv.status === "ACTIVE" ? "ONLINE" : "OFFLINE"}
-                    </span>
-                  </td>
+                    설치 위치
+                  </th>
+                  <th
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                      isDarkMode ? "text-gray-300" : "text-gray-500"
+                    }`}
+                  >
+                    상태
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody
+                className={`${
+                  isDarkMode ? "bg-gray-800" : "bg-white"
+                } divide-y ${
+                  isDarkMode ? "divide-gray-700" : "divide-gray-200"
+                }`}
+              >
+                {cctvList.map((cctv) => (
+                  <tr key={cctv.id}>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      <button
+                        onClick={() => handleViewCctv(cctv)}
+                        className={`underline cursor-pointer font-semibold ${
+                          isDarkMode
+                            ? "text-gray-400 hover:text-gray-300"
+                            : "text-gray-600 hover:text-gray-700"
+                        }`}
+                      >
+                        {cctv.deviceName}
+                      </button>
+                    </td>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm ${
+                        isDarkMode ? "text-gray-300" : "text-gray-600"
+                      }`}
+                    >
+                      {cctv.ipAddress}
+                    </td>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm ${
+                        isDarkMode ? "text-gray-300" : "text-gray-600"
+                      }`}
+                    >
+                      {cctv.location}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          cctv.status === "ACTIVE"
+                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                            : "bg-red-500/20 text-red-400 border border-red-500/30"
+                        }`}
+                      >
+                        {cctv.status === "ACTIVE" ? "ONLINE" : "OFFLINE"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

@@ -5,7 +5,6 @@ import CctvPlayer from "./CctvPlayer";
 function CCTVGroupManagement({
   isDarkMode,
   onRegisterDrawerTrigger,
-  onUpdateUndecidedCctvCount,
   onRefreshCctvs,
 }) {
   const UNDECIDED_GROUP_ID = 2;

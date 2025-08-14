@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import CCTVManagement from "./CCTVManagement";
 import CCTVGroupManagement from "./CCTVGroupManagement";
 import UserManagement from "./UserManagement";
+import CCTVAlertHistory from "./CCTVAlertHistory";
 import PrismLightLogo from "../assets/PrismLightLogo";
 import PrismDarkLogo from "../assets/PrismDarkLogo";
 import CctvPlayer from "./CctvPlayer";
@@ -21,8 +22,8 @@ function Dashboard({ onLogout }) {
   const hasCctvInUnassignedGroup = useMemo(() => {
     return cctvList.some((cctv) => cctv.groupId === 2);
   }, [cctvList]);
-  const [undecidedCount, setUndecidedCount] = useState(0);
   const [increaseRate, setIncreaseRate] = useState(0);
+  const [alertHistory, setAlertHistory] = useState([]);
 
   const fetchCctvList = () => {
     fetch(`${API_BASE}/cctvs`)
@@ -50,9 +51,70 @@ function Dashboard({ onLogout }) {
       .catch((err) => console.error("일일 증가율 오류:", err));
   };
 
+  const fetchAlertHistory = () => {
+    fetch(`${API_BASE}/cctv-alerts`)
+      .then((res) => res.json())
+      .then((data) => {
+        setAlertHistory(data);
+      })
+      .catch((err) => {
+        console.error("장애 이력 불러오기 실패:", err);
+        // 샘플 데이터 사용 (CCTVAlertHistory와 동일한 데이터)
+        const sampleHistory = [
+          {
+            id: 1,
+            cctvName: "1층 로비 CCTV-01",
+            cctvGroupName: "본사 1층",
+            failureCriteria: "응답없음",
+            severity: "위험",
+            occurrenceTime: "2025-01-27T10:30:00Z",
+            managerName: "김철수",
+          },
+          {
+            id: 2,
+            cctvName: "2층 회의실 CCTV-06",
+            cctvGroupName: "본사 2층",
+            failureCriteria: "지연",
+            severity: "주의",
+            occurrenceTime: "2025-01-27T09:15:00Z",
+            managerName: "이영희",
+          },
+          {
+            id: 3,
+            cctvName: "지하주차장 B구역 CCTV-08",
+            cctvGroupName: "주차장",
+            failureCriteria: "정상",
+            severity: "경고",
+            occurrenceTime: "2025-01-26T18:45:00Z",
+            managerName: "박민수",
+          },
+          {
+            id: 4,
+            cctvName: "정문 CCTV-10",
+            cctvGroupName: "출입구",
+            failureCriteria: "ping 요청 실패",
+            severity: "심각",
+            occurrenceTime: "2025-01-26T14:20:00Z",
+            managerName: "관리자",
+          },
+          {
+            id: 5,
+            cctvName: "1층 엘리베이터 CCTV-03",
+            cctvGroupName: "본사 1층",
+            failureCriteria: "지연",
+            severity: "주의",
+            occurrenceTime: "2025-01-26T11:10:00Z",
+            managerName: "김철수",
+          },
+        ];
+        setAlertHistory(sampleHistory);
+      });
+  };
+
   const refreshCctvStats = () => {
     fetchCctvList(); // CCTVManagement용 목록 // Sidebar용 상태 아이콘 (예: '미정' 그룹 있음 여부)
     fetchDailyCounts(); // 통계 카드
+    fetchAlertHistory(); // 장애 이력
   };
 
   useEffect(() => {
@@ -73,6 +135,61 @@ function Dashboard({ onLogout }) {
         warningCount: warning,
       };
     }, [cctvList]);
+
+  // 심각도별 배지 색상 함수
+  const getSeverityBadgeClasses = (severity) => {
+    const badgeClasses = {
+      "위험": {
+        bg: isDarkMode ? "bg-red-500/10 border border-red-500/20" : "bg-red-50 border border-red-200",
+        text: isDarkMode ? "text-red-400" : "text-red-700"
+      },
+      "심각": {
+        bg: isDarkMode ? "bg-orange-500/10 border border-orange-500/20" : "bg-orange-50 border border-orange-200",
+        text: isDarkMode ? "text-orange-400" : "text-orange-700"
+      },
+      "주의": {
+        bg: isDarkMode ? "bg-yellow-500/10 border border-yellow-500/20" : "bg-yellow-50 border border-yellow-200",
+        text: isDarkMode ? "text-yellow-400" : "text-yellow-700"
+      },
+      "경고": {
+        bg: isDarkMode ? "bg-gray-500/10 border border-gray-500/20" : "bg-gray-50 border border-gray-200",
+        text: isDarkMode ? "text-gray-400" : "text-gray-700"
+      },
+    };
+    
+    return badgeClasses[severity] || badgeClasses["경고"];
+  };
+
+  // 시간 차이 계산 함수
+  const getTimeAgo = (dateString) => {
+    const now = new Date();
+    const alertTime = new Date(dateString);
+    const diffInMinutes = Math.floor((now - alertTime) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return "방금 전";
+    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}시간 전`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}일 전`;
+  };
+
+  // 최신 장애 알림 3개 (위험, 심각 우선)
+  const recentAlerts = useMemo(() => {
+    const severityPriority = { "위험": 4, "심각": 3, "주의": 2, "경고": 1 };
+    
+    return alertHistory
+      .filter(alert => alert.severity !== "경고") // 경고는 제외하고 실제 문제가 있는 것만
+      .sort((a, b) => {
+        // 먼저 심각도 순, 그 다음 시간 순
+        const severityDiff = severityPriority[b.severity] - severityPriority[a.severity];
+        if (severityDiff !== 0) return severityDiff;
+        return new Date(b.occurrenceTime) - new Date(a.occurrenceTime);
+      })
+      .slice(0, 3);
+  }, [alertHistory]);
 
   const menuItems = [
     {
@@ -141,7 +258,7 @@ function Dashboard({ onLogout }) {
     },
     {
       id: "alerts",
-      label: "CCTV 장애 관리",
+      label: "CCTV 장애 이력",
       icon: (
         <svg
           className="w-5 h-5"
@@ -480,7 +597,6 @@ function Dashboard({ onLogout }) {
             <CCTVGroupManagement
               isDarkMode={isDarkMode}
               onRegisterDrawerTrigger={setCctvGroupDrawerTrigger}
-              onUpdateUndecidedCctvCount={setUndecidedCount}
               onRefreshCctvs={refreshCctvStats}
             />
           ) : activeMenu === "cctv" ? (
@@ -493,6 +609,10 @@ function Dashboard({ onLogout }) {
             <UserManagement
               isDarkMode={isDarkMode}
               onRegisterDrawerTrigger={setUserDrawerTrigger}
+            />
+          ) : activeMenu === "alerts" ? (
+            <CCTVAlertHistory
+              isDarkMode={isDarkMode}
             />
           ) : (
             <>
@@ -957,115 +1077,73 @@ function Dashboard({ onLogout }) {
                           : "bg-red-100 text-red-600"
                       }`}
                     >
-                      3 활성
+                      {recentAlerts.length} 활성
                     </span>
                   </div>
                   <div className="p-6">
-                    <div className="space-y-4">
-                      <div
-                        className={`rounded-lg p-4 ${
-                          isDarkMode
-                            ? "bg-red-500/10 border border-red-500/20"
-                            : "bg-red-50 border border-red-200"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4
-                              className={`text-sm font-medium ${
-                                isDarkMode ? "text-red-400" : "text-red-700"
-                              }`}
-                            >
-                              높음
-                            </h4>
-                            <p
-                              className={`text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-700"
-                              } mt-1`}
-                            >
-                              API 서버 응답 지연
-                            </p>
-                            <p
-                              className={`text-xs ${
-                                isDarkMode ? "text-gray-500" : "text-gray-400"
-                              } mt-2`}
-                            >
-                              10분 전 발생
-                            </p>
-                          </div>
-                        </div>
+                    {recentAlerts.length === 0 ? (
+                      <div className="text-center py-8">
+                        <svg
+                          className={`w-12 h-12 ${
+                            isDarkMode ? "text-gray-600" : "text-gray-400"
+                          } mx-auto mb-3`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                          현재 활성 장애가 없습니다
+                        </p>
                       </div>
-                      <div
-                        className={`rounded-lg p-4 ${
-                          isDarkMode
-                            ? "bg-yellow-500/10 border border-yellow-500/20"
-                            : "bg-yellow-50 border border-yellow-200"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4
-                              className={`text-sm font-medium ${
-                                isDarkMode
-                                  ? "text-yellow-400"
-                                  : "text-yellow-700"
-                              }`}
+                    ) : (
+                      <div className="space-y-4">
+                        {recentAlerts.map((alert) => {
+                          const badgeClasses = getSeverityBadgeClasses(alert.severity);
+                          return (
+                            <div
+                              key={alert.id}
+                              className={`rounded-lg p-4 ${badgeClasses.bg}`}
                             >
-                              중간
-                            </h4>
-                            <p
-                              className={`text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-700"
-                              } mt-1`}
-                            >
-                              메모리 사용율 경고
-                            </p>
-                            <p
-                              className={`text-xs ${
-                                isDarkMode ? "text-gray-500" : "text-gray-400"
-                              } mt-2`}
-                            >
-                              25분 전 발생
-                            </p>
-                          </div>
-                        </div>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h4 className={`text-sm font-medium ${badgeClasses.text}`}>
+                                      {alert.severity}
+                                    </h4>
+                                    <span className={`px-2 py-0.5 text-xs rounded-full bg-gray-500/20 ${
+                                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                                    }`}>
+                                      {alert.cctvGroupName}
+                                    </span>
+                                  </div>
+                                  <p
+                                    className={`text-sm ${
+                                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                                    } mb-1`}
+                                  >
+                                    {alert.cctvName} - {alert.failureCriteria}
+                                  </p>
+                                  <p
+                                    className={`text-xs ${
+                                      isDarkMode ? "text-gray-500" : "text-gray-400"
+                                    }`}
+                                  >
+                                    {getTimeAgo(alert.occurrenceTime)} 발생 | 담당자: {alert.managerName}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div
-                        className={`rounded-lg p-4 ${
-                          isDarkMode
-                            ? "bg-yellow-500/10 border border-yellow-500/20"
-                            : "bg-yellow-50 border border-yellow-200"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4
-                              className={`text-sm font-medium ${
-                                isDarkMode
-                                  ? "text-yellow-400"
-                                  : "text-yellow-700"
-                              }`}
-                            >
-                              낮음
-                            </h4>
-                            <p
-                              className={`text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-700"
-                              } mt-1`}
-                            >
-                              디스크 공간 부족 경고
-                            </p>
-                            <p
-                              className={`text-xs ${
-                                isDarkMode ? "text-gray-500" : "text-gray-400"
-                              } mt-2`}
-                            >
-                              1시간 전 발생
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>

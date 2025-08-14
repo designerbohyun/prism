@@ -612,12 +612,12 @@ function CCTVGroupManagement({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            cctv.status?.toLowerCase() === "online"
+                            cctv.status?.toLowerCase() === "ACTIVE"
                               ? "bg-green-500/20 text-green-400 border border-green-500/30"
                               : "bg-red-500/20 text-red-400 border border-red-500/30"
                           }`}
                         >
-                          {cctv.status?.toLowerCase() === "online"
+                          {cctv.status?.toLowerCase() === "ACTIVE"
                             ? "ONLINE"
                             : "OFFLINE"}
                         </span>
@@ -1196,12 +1196,12 @@ function CCTVGroupManagement({
                 </label>
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    selectedCctv?.status?.toLowerCase() === "online"
+                    selectedCctv?.status?.toLowerCase() === "ACTIVE"
                       ? "bg-green-500/20 text-green-400 border border-green-500/30"
                       : "bg-red-500/20 text-red-400 border border-red-500/30"
                   }`}
                 >
-                  {selectedCctv?.status?.toLowerCase() === "online"
+                  {selectedCctv?.status?.toLowerCase() === "ACTIVE"
                     ? "ONLINE"
                     : "OFFLINE"}
                 </span>

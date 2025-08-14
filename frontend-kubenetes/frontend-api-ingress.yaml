@@ -1,3 +1,4 @@
+# /api 로 들어오는 요청만 받아서 백엔드로 프록시한다.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

@@ -631,12 +631,12 @@ function CCTVManagement({
                     </label>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        selectedCctv?.status === "online"
+                        selectedCctv?.status === "ACTIVE"
                           ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : "bg-red-500/20 text-red-400 border border-red-500/30"
                       }`}
                     >
-                      {selectedCctv?.status === "online" ? "ONLINE" : "OFFLINE"}
+                      {selectedCctv?.status === "ACTIVE" ? "ONLINE" : "OFFLINE"}
                     </span>
                   </div>
 

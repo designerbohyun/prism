@@ -1,3 +1,4 @@
+# 프런트 네임스페이스에서 백엔드 서비스로 가는 DNS 별칭을 만든다.
 apiVersion: v1
 kind: Service
 metadata:

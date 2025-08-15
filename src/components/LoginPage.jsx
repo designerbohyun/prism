@@ -18,11 +18,20 @@ function PrismLogin({ onLoginSuccess }) {
     setIsLoading(true);
     setError("");
 
+    // 사용자 계정 및 권한 체크
+    const users = {
+      "admin@prism.com": { password: "password123", role: "admin", name: "관리자" },
+      "network@prism.com": { password: "password123", role: "network_admin", name: "네트워크 관리자" },
+      "operator@prism.com": { password: "password123", role: "operator", name: "관제사" }
+    };
+
     setTimeout(() => {
-      if (email === "admin@prism.com" && password === "password123") {
+      const user = users[email];
+      if (user && user.password === password) {
         console.log("로그인 성공!");
         if (onLoginSuccess) {
-          onLoginSuccess();
+          // 사용자 정보를 전달
+          onLoginSuccess({ email, role: user.role, name: user.name });
         }
       } else {
         setError("이메일 또는 비밀번호가 올바르지 않습니다.");
@@ -41,9 +50,24 @@ function PrismLogin({ onLoginSuccess }) {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-700">
-          <p className="font-semibold mb-1">테스트 계정:</p>
-          <p>이메일: admin@prism.com</p>
-          <p>비밀번호: password123</p>
+          <p className="font-semibold mb-2">테스트 계정:</p>
+          <div className="space-y-2">
+            <div>
+              <p className="font-medium">관리자</p>
+              <p className="text-xs">이메일: admin@prism.com</p>
+              <p className="text-xs">비밀번호: password123</p>
+            </div>
+            <div>
+              <p className="font-medium">네트워크 관리자</p>
+              <p className="text-xs">이메일: network@prism.com</p>
+              <p className="text-xs">비밀번호: password123</p>
+            </div>
+            <div>
+              <p className="font-medium">관제사</p>
+              <p className="text-xs">이메일: operator@prism.com</p>
+              <p className="text-xs">비밀번호: password123</p>
+            </div>
+          </div>
         </div>
 
         {error && (

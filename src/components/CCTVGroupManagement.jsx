@@ -170,7 +170,7 @@ function CCTVGroupManagement({
           locationAddress: "본사 1층 정문 로비",
           ipAddress: "192.168.1.101",
           status: "ACTIVE",
-          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+          hlsAddress: "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
         },
         {
           id: 2,
@@ -178,7 +178,7 @@ function CCTVGroupManagement({
           locationAddress: "본사 1층 중앙 복도",
           ipAddress: "192.168.1.102",
           status: "ACTIVE",
-          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+          hlsAddress: "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
         },
         {
           id: 3,
@@ -193,7 +193,7 @@ function CCTVGroupManagement({
           locationAddress: "본사 1층 비상구",
           ipAddress: "192.168.1.104",
           status: "ACTIVE",
-          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+          hlsAddress: "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
         },
         {
           id: 5,
@@ -201,7 +201,7 @@ function CCTVGroupManagement({
           locationAddress: "본사 2층 개발팀 사무실",
           ipAddress: "192.168.1.105",
           status: "ACTIVE",
-          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+          hlsAddress: "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
         },
         {
           id: 6,
@@ -237,7 +237,7 @@ function CCTVGroupManagement({
           locationAddress: "건물 정문 출입구",
           ipAddress: "192.168.1.110",
           status: "ACTIVE",
-          hlsAddress: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+          hlsAddress: "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
         },
         {
           id: 11,

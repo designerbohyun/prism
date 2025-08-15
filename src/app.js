@@ -5,10 +5,12 @@ import Dashboard from "./components/Dashboard";
 import PasswordReset from "./components/PasswordReset";
 
 const STORAGE_KEY = "prism_login_state";
+const USER_INFO_KEY = "prism_user_info";
 
 function App() {
   const hasInitialized = useRef(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,8 +19,10 @@ function App() {
       
       try {
         const savedLoginState = localStorage.getItem(STORAGE_KEY);
-        if (savedLoginState === "true") {
+        const savedUserInfo = localStorage.getItem(USER_INFO_KEY);
+        if (savedLoginState === "true" && savedUserInfo) {
           setIsLoggedIn(true);
+          setUserInfo(JSON.parse(savedUserInfo));
         }
       } catch (error) {
         console.error("Failed to read login state:", error);
@@ -39,10 +43,12 @@ function App() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (user) => {
     try {
       localStorage.setItem(STORAGE_KEY, "true");
+      localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
       setIsLoggedIn(true);
+      setUserInfo(user);
     } catch (error) {
       console.error("Failed to save login state:", error);
     }
@@ -51,10 +57,13 @@ function App() {
   const handleLogout = () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(USER_INFO_KEY);
       setIsLoggedIn(false);
+      setUserInfo(null);
     } catch (error) {
       console.error("Failed to remove login state:", error);
       setIsLoggedIn(false);
+      setUserInfo(null);
     }
   };
 
@@ -96,7 +105,7 @@ function App() {
           path="/dashboard" 
           element={
             isLoggedIn ? (
-              <Dashboard onLogout={handleLogout} />
+              <Dashboard onLogout={handleLogout} userInfo={userInfo} />
             ) : (
               <Navigate to="/login" replace />
             )

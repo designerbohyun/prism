@@ -9,6 +9,7 @@ import PrismLightLogo from "../assets/PrismLightLogo";
 import PrismDarkLogo from "../assets/PrismDarkLogo";
 import CctvPlayer from "./CctvPlayer";
 import { API_BASE } from "../apiBase";
+import { mockApi } from "../data/mockData";
 
 function Dashboard({ onLogout, userInfo }) {
   const [activeMenu, setActiveMenu] = useState("dashboard");
@@ -32,8 +33,8 @@ function Dashboard({ onLogout, userInfo }) {
   const [alertHistory, setAlertHistory] = useState([]);
 
   const fetchCctvList = () => {
-    fetch(`${API_BASE}/cctvs`)
-      .then((res) => res.json())
+    // 목업 데이터 사용 (실제 API 대신)
+    mockApi.getCctvList()
       .then((data) => {
         setCctvList(data);
       })
@@ -41,8 +42,8 @@ function Dashboard({ onLogout, userInfo }) {
   };
 
   const fetchDailyCounts = () => {
-    fetch(`${API_BASE}/cctvs/daily-count`)
-      .then((res) => res.json())
+    // 목업 데이터 사용 (실제 API 대신)
+    mockApi.getDailyCounts()
       .then((data) => {
         const today = data.today || 0;
         const yesterday = data.yesterday || 0;
@@ -58,62 +59,13 @@ function Dashboard({ onLogout, userInfo }) {
   };
 
   const fetchAlertHistory = () => {
-    fetch(`${API_BASE}/cctv-alerts`)
-      .then((res) => res.json())
+    // 목업 데이터 사용 (실제 API 대신)
+    mockApi.getAlertHistory()
       .then((data) => {
         setAlertHistory(data);
       })
       .catch((err) => {
         console.error("장애 이력 불러오기 실패:", err);
-        // 샘플 데이터 사용 (CCTVAlertHistory와 동일한 데이터)
-        const sampleHistory = [
-          {
-            id: 1,
-            cctvName: "1층 로비 CCTV-01",
-            cctvGroupName: "본사 1층",
-            failureCriteria: "응답없음",
-            severity: "위험",
-            occurrenceTime: "2025-01-27T10:30:00Z",
-            managerName: "김철수",
-          },
-          {
-            id: 2,
-            cctvName: "2층 회의실 CCTV-06",
-            cctvGroupName: "본사 2층",
-            failureCriteria: "지연",
-            severity: "주의",
-            occurrenceTime: "2025-01-27T09:15:00Z",
-            managerName: "이영희",
-          },
-          {
-            id: 3,
-            cctvName: "지하주차장 B구역 CCTV-08",
-            cctvGroupName: "주차장",
-            failureCriteria: "정상",
-            severity: "경고",
-            occurrenceTime: "2025-01-26T18:45:00Z",
-            managerName: "박민수",
-          },
-          {
-            id: 4,
-            cctvName: "정문 CCTV-10",
-            cctvGroupName: "출입구",
-            failureCriteria: "ping 요청 실패",
-            severity: "심각",
-            occurrenceTime: "2025-01-26T14:20:00Z",
-            managerName: "관리자",
-          },
-          {
-            id: 5,
-            cctvName: "1층 엘리베이터 CCTV-03",
-            cctvGroupName: "본사 1층",
-            failureCriteria: "지연",
-            severity: "주의",
-            occurrenceTime: "2025-01-26T11:10:00Z",
-            managerName: "김철수",
-          },
-        ];
-        setAlertHistory(sampleHistory);
       });
   };
 
@@ -202,7 +154,7 @@ function Dashboard({ onLogout, userInfo }) {
     const baseMenuItems = [
       {
         id: "dashboard",
-        label: "대시보드",
+        label: userRole === "network_admin" ? "CCTV 네트워크 모니터링" : "대시보드",
         icon: (
           <svg
             className="w-5 h-5"
@@ -695,338 +647,13 @@ function Dashboard({ onLogout, userInfo }) {
                 />
               ) : userRole === "network_admin" ? (
                 <>
-                  {/* 네트워크 상태 통계 카드들 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-                    {/* 전체 CCTV 카드 */}
-                    <div
-                      className={`${
-                        isDarkMode
-                          ? "bg-gray-800 border-gray-700"
-                          : "bg-white border-gray-200"
-                      } rounded-xl border p-6`}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div
-                          className={`p-2 rounded-lg ${
-                            isDarkMode ? "bg-teal-500/10" : "bg-teal-100"
-                          }`}
-                        >
-                          <svg
-                            className={`w-6 h-6 ${
-                              isDarkMode ? "text-teal-400" : "text-teal-600"
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div>
-                        <h3
-                          className={`text-sm font-medium ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          전체 CCTV
-                        </h3>
-                        <p
-                          className={`text-2xl font-bold ${
-                            isDarkMode ? "text-white" : "text-gray-900"
-                          } mt-1`}
-                        >
-                          {totalCount}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* 온라인 상태 카드 */}
-                    <div
-                      className={`${
-                        isDarkMode
-                          ? "bg-gray-800 border-gray-700"
-                          : "bg-white border-gray-200"
-                      } rounded-xl border p-6`}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div
-                          className={`p-2 rounded-lg ${
-                            isDarkMode ? "bg-green-500/10" : "bg-green-100"
-                          }`}
-                        >
-                          <svg
-                            className={`w-6 h-6 ${
-                              isDarkMode ? "text-green-400" : "text-green-600"
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div>
-                        <h3
-                          className={`text-sm font-medium ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          온라인
-                        </h3>
-                        <p
-                          className={`text-2xl font-bold ${
-                            isDarkMode ? "text-white" : "text-gray-900"
-                          } mt-1`}
-                        >
-                          {onlineCount}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* 오프라인 카드 */}
-                    <div
-                      className={`${
-                        isDarkMode
-                          ? "bg-gray-800 border-gray-700"
-                          : "bg-white border-gray-200"
-                      } rounded-xl border p-6`}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div
-                          className={`p-2 rounded-lg ${
-                            isDarkMode ? "bg-red-500/10" : "bg-red-100"
-                          }`}
-                        >
-                          <svg
-                            className={`w-6 h-6 ${
-                              isDarkMode ? "text-red-400" : "text-red-600"
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div>
-                        <h3
-                          className={`text-sm font-medium ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          오프라인
-                        </h3>
-                        <p
-                          className={`text-2xl font-bold ${
-                            isDarkMode ? "text-white" : "text-gray-900"
-                          } mt-1`}
-                        >
-                          {offlineCount}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* 네트워크 지연 카드 */}
-                    <div
-                      className={`${
-                        isDarkMode
-                          ? "bg-gray-800 border-gray-700"
-                          : "bg-white border-gray-200"
-                      } rounded-xl border p-6`}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div
-                          className={`p-2 rounded-lg ${
-                            isDarkMode ? "bg-yellow-500/10" : "bg-yellow-100"
-                          }`}
-                        >
-                          <svg
-                            className={`w-6 h-6 ${
-                              isDarkMode ? "text-yellow-400" : "text-yellow-600"
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div>
-                        <h3
-                          className={`text-sm font-medium ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          평균 지연시간
-                        </h3>
-                        <p
-                          className={`text-2xl font-bold ${
-                            isDarkMode ? "text-white" : "text-gray-900"
-                          } mt-1`}
-                        >
-                          32ms
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* CCTV 네트워크 상태 테이블 */}
-                  <div className={`rounded-lg border ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } overflow-hidden`}>
-                    <div className={`px-6 py-4 border-b ${
-                      isDarkMode ? "border-gray-700" : "border-gray-200"
-                    }`}>
-                      <h3 className={`text-lg font-semibold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}>
-                        CCTV 네트워크 상태 모니터링
-                      </h3>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className={`${isDarkMode ? "bg-gray-700" : "bg-gray-50"}`}>
-                          <tr>
-                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                              isDarkMode ? "text-gray-300" : "text-gray-500"
-                            }`}>
-                              CCTV 이름
-                            </th>
-                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                              isDarkMode ? "text-gray-300" : "text-gray-500"
-                            }`}>
-                              IP 주소
-                            </th>
-                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                              isDarkMode ? "text-gray-300" : "text-gray-500"
-                            }`}>
-                              상태
-                            </th>
-                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                              isDarkMode ? "text-gray-300" : "text-gray-500"
-                            }`}>
-                              핑(ms)
-                            </th>
-                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                              isDarkMode ? "text-gray-300" : "text-gray-500"
-                            }`}>
-                              패킷 손실
-                            </th>
-                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                              isDarkMode ? "text-gray-300" : "text-gray-500"
-                            }`}>
-                              대역폭
-                            </th>
-                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                              isDarkMode ? "text-gray-300" : "text-gray-500"
-                            }`}>
-                              마지막 확인
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className={`${isDarkMode ? "bg-gray-800" : "bg-white"} divide-y ${
-                          isDarkMode ? "divide-gray-700" : "divide-gray-200"
-                        }`}>
-                          {cctvList.map((cctv) => (
-                            <tr 
-                              key={cctv.id} 
-                              className="hover:cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                              onClick={() => setSelectedCctv(cctv)}
-                            >
-                              <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                                isDarkMode ? "text-white hover:text-teal-400" : "text-gray-900 hover:text-teal-600"
-                              } transition-colors underline`}>
-                                {cctv.locationName}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-600"
-                              }`}>
-                                {cctv.ipAddress}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  cctv.status === "ACTIVE"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}>
-                                  {cctv.status === "ACTIVE" ? "온라인" : "오프라인"}
-                                </span>
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-600"
-                              }`}>
-                                {cctv.status === "ACTIVE" ? Math.floor(Math.random() * 50) + 10 : "-"}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-600"
-                              }`}>
-                                {cctv.status === "ACTIVE" ? "0%" : "100%"}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-600"
-                              }`}>
-                                {cctv.status === "ACTIVE" ? "2.4 Mbps" : "-"}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                isDarkMode ? "text-gray-300" : "text-gray-600"
-                              }`}>
-                                방금 전
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* 기존 관리자/관제사용 통계 카드들 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                {/* 전체 CCTV 카드 */}
-                <div
-                  className={`${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } rounded-xl border p-6`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "bg-teal-500/10" : "bg-teal-100"
-                      }`}
-                    >
+                  {/* 네트워크 관리자용 CCTV 영상 목록 - 헤더 없음 */}
+                  {cctvList.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12">
                       <svg
-                        className={`w-6 h-6 ${
-                          isDarkMode ? "text-teal-400" : "text-teal-600"
-                        }`}
+                        className={`w-16 h-16 ${
+                          isDarkMode ? "text-gray-600" : "text-gray-400"
+                        } mb-4`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1034,510 +661,350 @@ function Dashboard({ onLogout, userInfo }) {
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth="2"
+                          strokeWidth="1.5"
                           d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                         />
                       </svg>
-                    </div>
-                    <span className="text-xs text-gray-500 font-medium flex items-center">
-                      {increaseRate > 0 ? (
-                        <svg
-                          className="w-3 h-3 mr-1 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      ) : increaseRate < 0 ? (
-                        <svg
-                          className="w-3 h-3 mr-1 text-red-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M14.707 10.293a1 1 0 00-1.414 0L11 12.586V5a1 1 0 10-2 0v7.586l-2.293-2.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l4-4a1 1 0 000-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      ) : null}
-                      <span>
-                        {increaseRate > 0 && "+"}
-                        {increaseRate.toFixed(1)}%
-                      </span>
-                    </span>
-                  </div>
-                  <div>
-                    <h3
-                      className={`text-sm font-medium ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      전체 CCTV
-                    </h3>
-                    <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      } mt-1`}
-                    >
-                      {totalCount}
-                    </p>
-                  </div>
-                </div>
-
-                {/* 온라인 상태 카드 */}
-                <div
-                  className={`${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } rounded-xl border p-6`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "bg-green-500/10" : "bg-green-100"
-                      }`}
-                    >
-                      <svg
-                        className={`w-6 h-6 ${
-                          isDarkMode ? "text-green-400" : "text-green-600"
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-xs text-gray-500 font-medium flex items-center">
-                      <svg
-                        className="w-3 h-3 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      +1.4%
-                    </span>
-                  </div>
-                  <div>
-                    <h3
-                      className={`text-sm font-medium ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      온라인 상태
-                    </h3>
-                    <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      } mt-1`}
-                    >
-                      {onlineCount}
-                    </p>
-                  </div>
-                </div>
-
-                {/* 장애 발생 카드 */}
-                <div
-                  className={`${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } rounded-xl border p-6`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "bg-red-500/10" : "bg-red-100"
-                      }`}
-                    >
-                      <svg
-                        className={`w-6 h-6 ${
-                          isDarkMode ? "text-red-400" : "text-red-600"
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-xs text-gray-500 font-medium flex items-center">
-                      <svg
-                        className="w-3 h-3 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      -25.0%
-                    </span>
-                  </div>
-                  <div>
-                    <h3
-                      className={`text-sm font-medium ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      장애 발생
-                    </h3>
-                    <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      } mt-1`}
-                    >
-                      {offlineCount}
-                    </p>
-                  </div>
-                </div>
-
-                {/* 주의 필요 카드 */}
-                <div
-                  className={`${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } rounded-xl border p-6`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "bg-yellow-500/10" : "bg-yellow-100"
-                      }`}
-                    >
-                      <svg
-                        className={`w-6 h-6 ${
-                          isDarkMode ? "text-yellow-400" : "text-yellow-600"
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-xs text-gray-500 font-medium flex items-center">
-                      <svg
-                        className="w-3 h-3 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      +66.7%
-                    </span>
-                  </div>
-                  <div>
-                    <h3
-                      className={`text-sm font-medium ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      주의 필요
-                    </h3>
-                    <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      } mt-1`}
-                    >
-                      {warningCount}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
-                {/* 실시간 CCTV 목록 */}
-                <div
-                  className={`${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } rounded-xl border w-full h-full xl:w-2/3`}
-                >
-                  <div
-                    className={`flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b ${
-                      isDarkMode ? "border-gray-700" : "border-gray-200"
-                    } gap-2`}
-                  >
-                    <h3
-                      className={`text-base sm:text-lg font-semibold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      실시간 CCTV 목록
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={`text-xs sm:text-sm ${
+                      <h4
+                        className={`text-base font-medium ${
                           isDarkMode ? "text-gray-400" : "text-gray-600"
-                        }`}
+                        } mb-2`}
                       >
-                        총 {totalCount}대
-                      </span>
-                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                      <span className="text-xs sm:text-sm text-green-400 font-medium">
-                        LIVE
-                      </span>
+                        등록된 CCTV가 없습니다
+                      </h4>
+                      <p
+                        className={`text-sm ${
+                          isDarkMode ? "text-gray-500" : "text-gray-500"
+                        } text-center max-w-sm`}
+                      >
+                        CCTV 관리 메뉴에서 새로운 CCTV를 등록해주세요.
+                      </p>
                     </div>
-                  </div>
-                  <div className="p-4 sm:p-6 ">
-                    {cctvList.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-12">
-                        <svg
-                          className={`w-16 h-16 ${
-                            isDarkMode ? "text-gray-600" : "text-gray-400"
-                          } mb-4`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="1.5"
-                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <h4
-                          className={`text-base font-medium ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          } mb-2`}
-                        >
-                          등록된 CCTV가 없습니다
-                        </h4>
-                        <p
-                          className={`text-sm ${
-                            isDarkMode ? "text-gray-500" : "text-gray-500"
-                          } text-center max-w-sm`}
-                        >
-                          CCTV 관리 메뉴에서 새로운 CCTV를 등록해주세요.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        {cctvList.map((cctv) => {
-                          return (
-                            <div
-                              key={cctv.id}
-                              className={`${
-                                isDarkMode ? "bg-gray-700" : "bg-gray-50"
-                              } rounded-lg p-4 relative`}
-                            >
-                              <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
-                                {cctv.status === "ACTIVE" &&
-                                cctv.hlsAddress?.includes("http") ? (
-                                  <CctvPlayer
-                                    key={cctv.id}
-                                    src={cctv.hlsAddress}
-                                  />
-                                ) : (
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <svg
-                                      className="w-12 h-12 text-gray-600"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                      />
-                                    </svg>
-                                  </div>
-                                )}
-
-                                {/* 상태 뱃지 */}
-                                <div className="absolute top-2 left-2">
-                                  <span
-                                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                      cctv.status === "ACTIVE"
-                                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                        : cctv.status === "OFFLINE"
-                                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                                        : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                                    }`}
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                      {cctvList.map((cctv) => {
+                        const ping = cctv.status === "ACTIVE" ? Math.floor(Math.random() * 50) + 10 : 0;
+                        const packetLoss = cctv.status === "ACTIVE" ? Math.random() * 2 : 100;
+                        return (
+                          <div
+                            key={cctv.id}
+                            className={`${
+                              isDarkMode ? "bg-gray-700" : "bg-gray-50"
+                            } rounded-lg p-4 relative hover:shadow-lg transition-shadow cursor-pointer`}
+                            onClick={() => setSelectedCctv(cctv)}
+                          >
+                            <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
+                              {cctv.status === "ACTIVE" &&
+                              cctv.hlsAddress?.includes("http") ? (
+                                <CctvPlayer
+                                  key={cctv.id}
+                                  src={cctv.hlsAddress}
+                                />
+                              ) : (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <svg
+                                    className="w-12 h-12 text-gray-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
                                   >
-                                    {cctv.status.toUpperCase()}
-                                  </span>
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                    />
+                                  </svg>
                                 </div>
+                              )}
 
-                                {/* 위치 뱃지 */}
-                                <div className="absolute top-2 right-2">
-                                  <span
-                                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                      isDarkMode
-                                        ? "bg-gray-600 text-gray-300"
-                                        : "bg-white text-gray-700"
-                                    }`}
-                                  >
-                                    {cctv.locationName}
-                                  </span>
-                                </div>
+                              {/* 상태 뱃지 */}
+                              <div className="absolute top-2 left-2">
+                                <span
+                                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    cctv.status === "ACTIVE"
+                                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                      : cctv.status === "OFFLINE"
+                                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                      : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                  }`}
+                                >
+                                  {cctv.status.toUpperCase()}
+                                </span>
                               </div>
 
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h4
-                                    className={`font-medium text-sm ${
-                                      isDarkMode
-                                        ? "text-white"
-                                        : "text-gray-900"
-                                    }`}
-                                  >
-                                    {cctv.locationName}
-                                  </h4>
-                                  <p
-                                    className={`text-xs ${
-                                      isDarkMode
-                                        ? "text-gray-400"
-                                        : "text-gray-500"
-                                    } mt-1`}
-                                  >
-                                    {cctv.ipAddress}
-                                  </p>
+                              {/* 네트워크 상태 표시 */}
+                              <div className="absolute top-2 right-2">
+                                <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${
+                                  ping < 30 
+                                    ? "bg-green-500/20 border border-green-500/30"
+                                    : ping < 60 
+                                    ? "bg-yellow-500/20 border border-yellow-500/30"
+                                    : "bg-red-500/20 border border-red-500/30"
+                                }`}>
+                                  <div className={`w-2 h-2 rounded-full ${
+                                    ping < 30 ? "bg-green-500" : ping < 60 ? "bg-yellow-500" : "bg-red-500"
+                                  }`}></div>
+                                  <span className={`text-xs font-medium ${
+                                    ping < 30 ? "text-green-400" : ping < 60 ? "text-yellow-400" : "text-red-400"
+                                  }`}>
+                                    {cctv.status === "ACTIVE" ? `${ping}ms` : "OFFLINE"}
+                                  </span>
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
 
-                {/* 장애 알림 */}
-                <div
-                  className={`${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } rounded-xl border w-full xl:w-1/3`}
-                >
+                            <div className="space-y-2">
+                              <div>
+                                <h4
+                                  className={`font-medium text-sm ${
+                                    isDarkMode
+                                      ? "text-white"
+                                      : "text-gray-900"
+                                  }`}
+                                >
+                                  {cctv.locationName}
+                                </h4>
+                                <p
+                                  className={`text-xs ${
+                                    isDarkMode
+                                      ? "text-gray-400"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {cctv.ipAddress}
+                                </p>
+                              </div>
+                              
+                              {/* 네트워크 상세 정보 */}
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                  <span className={`${
+                                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                                  }`}>
+                                    패킷 손실
+                                  </span>
+                                  <p className={`font-medium ${
+                                    packetLoss < 1 
+                                      ? "text-green-400" 
+                                      : packetLoss < 5 
+                                      ? "text-yellow-400" 
+                                      : "text-red-400"
+                                  }`}>
+                                    {packetLoss.toFixed(1)}%
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className={`${
+                                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                                  }`}>
+                                    대역폭
+                                  </span>
+                                  <p className={`font-medium ${
+                                    isDarkMode ? "text-white" : "text-gray-900"
+                                  }`}>
+                                    {cctv.status === "ACTIVE" ? "2.4 Mbps" : "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              {/* 마지막 확인 시간 */}
+                              <div className="flex items-center justify-between text-xs">
+                                <span className={`${
+                                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                                }`}>
+                                  마지막 확인
+                                </span>
+                                <span className={`${
+                                  cctv.status === "ACTIVE" 
+                                    ? "text-green-400" 
+                                    : isDarkMode ? "text-gray-400" : "text-gray-500"
+                                }`}>
+                                  {cctv.status === "ACTIVE" ? "방금 전" : "연결 끊김"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* CCTV 영상 목록 - 전체 화면 */}
                   <div
-                    className={`px-6 py-4 border-b ${
-                      isDarkMode ? "border-gray-700" : "border-gray-200"
-                    } flex items-center justify-between`}
+                    className={`${
+                      isDarkMode
+                        ? "bg-gray-800 border-gray-700"
+                        : "bg-white border-gray-200"
+                    } rounded-xl border w-full`}
                   >
-                    <h3
-                      className={`text-lg font-semibold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
+                    <div
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b ${
+                        isDarkMode ? "border-gray-700" : "border-gray-200"
+                      } gap-2`}
                     >
-                      장애 알림
-                    </h3>
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        isDarkMode
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {recentAlerts.length} 활성
-                    </span>
-                  </div>
-                  <div className="p-6">
-                    {recentAlerts.length === 0 ? (
-                      <div className="text-center py-8">
-                        <svg
-                          className={`w-12 h-12 ${
-                            isDarkMode ? "text-gray-600" : "text-gray-400"
-                          } mx-auto mb-3`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <h3
+                        className={`text-base sm:text-lg font-semibold ${
+                          isDarkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        실시간 CCTV 영상
+                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`text-xs sm:text-sm ${
+                            isDarkMode ? "text-gray-400" : "text-gray-600"
+                          }`}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                          현재 활성 장애가 없습니다
-                        </p>
+                          총 {totalCount}대
+                        </span>
+                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        <span className="text-xs sm:text-sm text-green-400 font-medium">
+                          LIVE
+                        </span>
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {recentAlerts.map((alert) => {
-                          const badgeClasses = getSeverityBadgeClasses(alert.severity);
-                          return (
-                            <div
-                              key={alert.id}
-                              className={`rounded-lg p-4 ${badgeClasses.bg}`}
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <h4 className={`text-sm font-medium ${badgeClasses.text}`}>
-                                      {alert.severity}
-                                    </h4>
-                                    <span className={`px-2 py-0.5 text-xs rounded-full bg-gray-500/20 ${
-                                      isDarkMode ? "text-gray-300" : "text-gray-600"
-                                    }`}>
-                                      {alert.cctvGroupName}
+                    </div>
+                    <div className="p-4 sm:p-6">
+                      {cctvList.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <svg
+                            className={`w-16 h-16 ${
+                              isDarkMode ? "text-gray-600" : "text-gray-400"
+                            } mb-4`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
+                              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <h4
+                            className={`text-base font-medium ${
+                              isDarkMode ? "text-gray-400" : "text-gray-600"
+                            } mb-2`}
+                          >
+                            등록된 CCTV가 없습니다
+                          </h4>
+                          <p
+                            className={`text-sm ${
+                              isDarkMode ? "text-gray-500" : "text-gray-500"
+                            } text-center max-w-sm`}
+                          >
+                            CCTV 관리 메뉴에서 새로운 CCTV를 등록해주세요.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                          {cctvList.map((cctv) => {
+                            return (
+                              <div
+                                key={cctv.id}
+                                className={`${
+                                  isDarkMode ? "bg-gray-700" : "bg-gray-50"
+                                } rounded-lg p-4 relative hover:shadow-lg transition-shadow`}
+                              >
+                                <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
+                                  {cctv.status === "ACTIVE" &&
+                                  cctv.hlsAddress?.includes("http") ? (
+                                    <CctvPlayer
+                                      key={cctv.id}
+                                      src={cctv.hlsAddress}
+                                    />
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <svg
+                                        className="w-12 h-12 text-gray-600"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                    </div>
+                                  )}
+
+                                  {/* 상태 뱃지 */}
+                                  <div className="absolute top-2 left-2">
+                                    <span
+                                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                        cctv.status === "ACTIVE"
+                                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                          : cctv.status === "OFFLINE"
+                                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                          : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                      }`}
+                                    >
+                                      {cctv.status.toUpperCase()}
                                     </span>
                                   </div>
-                                  <p
-                                    className={`text-sm ${
-                                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                                    } mb-1`}
-                                  >
-                                    {alert.cctvName} - {alert.failureCriteria}
-                                  </p>
-                                  <p
-                                    className={`text-xs ${
-                                      isDarkMode ? "text-gray-500" : "text-gray-400"
-                                    }`}
-                                  >
-                                    {getTimeAgo(alert.occurrenceTime)} 발생 | 담당자: {alert.managerName}
-                                  </p>
+
+                                  {/* 녹화 표시 */}
+                                  {cctv.status === "ACTIVE" && (
+                                    <div className="absolute top-2 right-2">
+                                      <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-red-500/20 border border-red-500/30">
+                                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                        <span className="text-xs font-medium text-red-400">REC</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="space-y-2">
+                                  <div>
+                                    <h4
+                                      className={`font-medium text-sm ${
+                                        isDarkMode
+                                          ? "text-white"
+                                          : "text-gray-900"
+                                      }`}
+                                    >
+                                      {cctv.locationName}
+                                    </h4>
+                                    <p
+                                      className={`text-xs ${
+                                        isDarkMode
+                                          ? "text-gray-400"
+                                          : "text-gray-500"
+                                      }`}
+                                    >
+                                      {cctv.ipAddress}
+                                    </p>
+                                  </div>
+                                  
+                                  {/* 추가 정보 */}
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className={`${
+                                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                                    }`}>
+                                      해상도: 1080p
+                                    </span>
+                                    <span className={`${
+                                      cctv.status === "ACTIVE" 
+                                        ? "text-green-400" 
+                                        : isDarkMode ? "text-gray-400" : "text-gray-500"
+                                    }`}>
+                                      {cctv.status === "ACTIVE" ? "정상" : "연결 끊김"}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
                 </>
               )}
             </>

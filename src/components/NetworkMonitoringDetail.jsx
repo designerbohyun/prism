@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import CctvPlayer from "./CctvPlayer";
 
 function NetworkMonitoringDetail({ isDarkMode, cctvInfo, onBack }) {
   const [timeRange, setTimeRange] = useState("24h");
@@ -278,23 +279,57 @@ function NetworkMonitoringDetail({ isDarkMode, cctvInfo, onBack }) {
           <h3 className={`text-lg font-semibold mb-4 ${
             isDarkMode ? "text-white" : "text-gray-900"
           }`}>
-            미리보기
+            실시간 영상
           </h3>
-          <div className={`w-full aspect-video rounded-lg flex items-center justify-center ${
+          <div className={`w-full aspect-video rounded-lg overflow-hidden relative ${
             isDarkMode ? "bg-gray-700" : "bg-gray-100"
           }`}>
-            <div className="text-center">
-              <svg className={`w-16 h-16 mx-auto mb-2 ${
-                isDarkMode ? "text-gray-500" : "text-gray-400"
-              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <p className={`text-sm ${
-                isDarkMode ? "text-gray-500" : "text-gray-400"
-              }`}>
-                영상/지도 영역
-              </p>
+            {cctvInfo?.status === "ACTIVE" && cctvInfo?.hlsAddress ? (
+              <CctvPlayer
+                key={cctvInfo.id}
+                src={cctvInfo.hlsAddress}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <svg className={`w-16 h-16 mx-auto mb-2 ${
+                    isDarkMode ? "text-gray-500" : "text-gray-400"
+                  }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <p className={`text-sm ${
+                    isDarkMode ? "text-gray-500" : "text-gray-400"
+                  }`}>
+                    {cctvInfo?.status === "OFFLINE" ? "연결 끊김" : "영상 없음"}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* 상태 뱃지 */}
+            <div className="absolute top-2 left-2">
+              <span
+                className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  cctvInfo?.status === "ACTIVE"
+                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                    : cctvInfo?.status === "OFFLINE"
+                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                    : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                }`}
+              >
+                {cctvInfo?.status === "ACTIVE" ? "LIVE" : cctvInfo?.status || "UNKNOWN"}
+              </span>
             </div>
+            
+            {/* 녹화 표시 */}
+            {cctvInfo?.status === "ACTIVE" && (
+              <div className="absolute top-2 right-2">
+                <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-red-500/20 border border-red-500/30">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-red-400">REC</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

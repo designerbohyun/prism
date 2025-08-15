@@ -16,7 +16,7 @@ function CCTVGroupManagement({
   const [drawerMode, setDrawerMode] = useState("add");
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [viewMode, setViewMode] = useState("list"); // list or card
+  const [viewMode, setViewMode] = useState("card"); // list or card
   const [searchQuery, setSearchQuery] = useState("");
   const [searchDate, setSearchDate] = useState("");
   

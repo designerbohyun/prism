@@ -8,6 +8,13 @@ npm install
 
 npm install hls.js
 
+npm i react-router-dom@latest
+
+## 패키지 재설치 방법 (webpack 문제 있을 시)
+rm -rf node_modules package-lock.json
+
+npm install
+
 ## 실행 방법
 
 ### 로컬 개발 서버 실행 시

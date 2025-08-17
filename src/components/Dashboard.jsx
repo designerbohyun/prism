@@ -32,31 +32,52 @@ function Dashboard({ onLogout, userInfo }) {
   const [alertHistory, setAlertHistory] = useState([]);
 
   const fetchCctvList = () => {
-    // 목업 데이터 사용 (실제 API 대신)
-    mockApi
-      .getCctvList()
+    fetch(`${API_BASE}/cctvs`)
+      .then((res) => res.json())
       .then((data) => {
         setCctvList(data);
       })
       .catch((err) => console.error("CCTV 목록 오류:", err));
   };
 
-  const fetchDailyCounts = () => {
-    // 목업 데이터 사용 (실제 API 대신)
-    mockApi
-      .getDailyCounts()
-      .then((data) => {
-        const today = data.today || 0;
-        const yesterday = data.yesterday || 0;
-        const rate =
-          yesterday > 0
-            ? ((today - yesterday) / yesterday) * 100
-            : today > 0
-            ? 100
-            : 0;
-        setIncreaseRate(rate);
-      })
-      .catch((err) => console.error("일일 증가율 오류:", err));
+  // KST 기준 어제 날짜(YYYY-MM-DD) 구하기
+  const getYesterdayKstYmd = () => {
+    const now = new Date();
+    const kstNow = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Seoul" })
+    );
+    kstNow.setDate(kstNow.getDate() - 1);
+    const yyyy = kstNow.getFullYear();
+    const mm = String(kstNow.getMonth() + 1).padStart(2, "0");
+    const dd = String(kstNow.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const fetchDailyCounts = async () => {
+    try {
+      // 오늘 총보유
+      const todayRes = await fetch(`${API_BASE}/cctvs/count`);
+      const { total: todayTotal } = await todayRes.json();
+
+      // 어제 총보유 (KST 하루 끝 시점)
+      const ymd = getYesterdayKstYmd();
+      const yRes = await fetch(`${API_BASE}/cctvs/total-daily?date=${ymd}`);
+      const { total: yesterdayTotal } = await yRes.json();
+
+      // 증감률(어제 대비 오늘 총보유)
+      const rate =
+        yesterdayTotal > 0
+          ? ((todayTotal - yesterdayTotal) / yesterdayTotal) * 100
+          : todayTotal > 0
+          ? 100
+          : 0;
+
+      setIncreaseRate(rate);
+      // 카드에 "오늘 총보유" 숫자도 보여주고 싶으면 상태를 따로 두고 여기서 set 해주세요.
+      // setTodayTotal(todayTotal);
+    } catch (err) {
+      console.error("총보유 통계 오류:", err);
+    }
   };
 
   const fetchAlertHistory = () => {

@@ -21,6 +21,29 @@ function CCTVManagement({
     roadAddress: "",
   });
 
+  const statusBadgeClass = (s) => {
+    switch (s) {
+      case "ACTIVE":
+        return "bg-green-500/20 text-green-400 border border-green-500/30";
+      case "OFFLINE":
+        return "bg-red-500/20 text-red-400 border border-red-500/30";
+      case "WARNING":
+        return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30";
+      default:
+        return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
+    }
+  };
+
+  const StatusBadge = ({ status }) => (
+    <span
+      className={`px-2 py-1 text-xs font-medium rounded-full ${statusBadgeClass(
+        status
+      )}`}
+    >
+      {status ?? "UNKNOWN"}
+    </span>
+  );
+
   // 목록 갱신 함수
   const fetchCctvList = () => {
     fetch(`${API_BASE}/cctvs`)
@@ -291,12 +314,16 @@ function CCTVManagement({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          cctv.status === "ACTIVE"
+                          (cctv.status ?? "UNKNOWN") === "ACTIVE"
                             ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                            : "bg-red-500/20 text-red-400 border border-red-500/30"
+                            : (cctv.status ?? "UNKNOWN") === "OFFLINE"
+                            ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                            : (cctv.status ?? "UNKNOWN") === "WARNING"
+                            ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                            : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
                         }`}
                       >
-                        {cctv.status === "ACTIVE" ? "ONLINE" : "OFFLINE"}
+                        {cctv.status ?? "UNKNOWN"}
                       </span>
                     </td>
                   </tr>
@@ -667,15 +694,7 @@ function CCTVManagement({
                     >
                       상태
                     </label>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        selectedCctv?.status === "ACTIVE"
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}
-                    >
-                      {selectedCctv?.status === "ACTIVE" ? "ONLINE" : "OFFLINE"}
-                    </span>
+                    <StatusBadge status={selectedCctv?.status} />
                   </div>
 
                   <div>

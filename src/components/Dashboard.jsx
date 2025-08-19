@@ -28,8 +28,23 @@ function Dashboard({ onLogout, userInfo }) {
   const hasCctvInUnassignedGroup = useMemo(() => {
     return cctvList.some((cctv) => cctv.groupId === 2);
   }, [cctvList]);
-  const [increaseRate, setIncreaseRate] = useState(0);
   const [alertHistory, setAlertHistory] = useState([]);
+
+  const [increaseRate, setIncreaseRate] = useState(0); // 전체 CCTV 카드에 사용
+  const [statusRates, setStatusRates] = useState({
+    total: 0,
+    active: 0,
+    warning: 0,
+    error: 0,
+  });
+
+  // 오늘(현재) 실제 개수
+  const [countsNow, setCountsNow] = useState({
+    total: 0,
+    active: 0,
+    error: 0,
+    warning: 0,
+  });
 
   const fetchCctvList = () => {
     fetch(`${API_BASE}/cctvs`)
@@ -53,31 +68,96 @@ function Dashboard({ onLogout, userInfo }) {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+  const calcRate = (t, p) => {
+    const tn = Number(t) || 0;
+    const pn = Number(p) || 0;
+    if (pn === 0) return tn === 0 ? 0 : tn * 100; // 전일 0이면 캡 없이 t×100
+    return ((tn - pn) / pn) * 100;
+  };
+
   const fetchDailyCounts = async () => {
     try {
-      // 오늘 총보유
-      const todayRes = await fetch(`${API_BASE}/cctvs/count`);
-      const { total: todayTotal } = await todayRes.json();
-
-      // 어제 총보유 (KST 하루 끝 시점)
       const ymd = getYesterdayKstYmd();
-      const yRes = await fetch(`${API_BASE}/cctvs/total-daily?date=${ymd}`);
-      const { total: yesterdayTotal } = await yRes.json();
 
-      // 증감률(어제 대비 오늘 총보유)
-      const rate =
-        yesterdayTotal > 0
-          ? ((todayTotal - yesterdayTotal) / yesterdayTotal) * 100
-          : todayTotal > 0
-          ? 100
-          : 0;
+      const [todayRes, yRes] = await Promise.all([
+        fetch(`${API_BASE}/cctvs/status-counts`).then((r) => r.json()),
+        fetch(`${API_BASE}/cctvs/status-counts-daily?date=${ymd}`).then((r) =>
+          r.json()
+        ),
+      ]);
 
-      setIncreaseRate(rate);
-      // 카드에 "오늘 총보유" 숫자도 보여주고 싶으면 상태를 따로 두고 여기서 set 해주세요.
-      // setTodayTotal(todayTotal);
-    } catch (err) {
-      console.error("총보유 통계 오류:", err);
+      // 안전가드
+      const today = todayRes || {};
+      const yesterday = yRes || {};
+
+      // total 없으면 합산해서 계산 (offline이 있으면 포함)
+      const sum = (obj = {}) =>
+        (obj.active ?? 0) +
+        (obj.error ?? 0) +
+        (obj.warning ?? 0) +
+        (obj.offline ?? 0);
+
+      const todayTotal = (today.total ?? 0) || sum(today);
+      const yTotal = (yesterday.total ?? 0) || sum(yesterday);
+
+      // 현재 카운트 상태 반영
+      setCountsNow({
+        total: todayTotal,
+        active: today.active ?? 0,
+        error: today.error ?? 0,
+        warning: today.warning ?? 0,
+      });
+
+      // 증감률 계산 (전일 0이면 t×100으로 100% 초과도 그대로 표기)
+      const rate = (t, p) => {
+        const tn = Number(t) || 0;
+        const pn = Number(p) || 0;
+        if (pn === 0) return tn === 0 ? 0 : tn * 100;
+        return ((tn - pn) / pn) * 100;
+      };
+
+      const rates = {
+        total: rate(todayTotal, yTotal),
+        active: rate(today.active, yesterday.active),
+        error: rate(today.error, yesterday.error),
+        warning: rate(today.warning, yesterday.warning),
+      };
+
+      setStatusRates(rates);
+      setIncreaseRate(rates.total); // 전체 CCTV 카드에 사용
+    } catch (e) {
+      console.error("상태 퍼센트 계산 오류:", e);
     }
+  };
+
+  // 대시보드 진입 시 한번 불러오기
+  useEffect(() => {
+    fetchDailyCounts();
+    fetchCctvList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // JS 버전의 컴포넌트(타입 제거)
+  const Trend = ({ value = 0 }) => {
+    const n = Number(value) || 0;
+    const up = n >= 0;
+    const cls = `text-xs font-medium flex items-center ${
+      up ? "text-green-500" : "text-red-500"
+    }`;
+    return (
+      <span className={cls}>
+        {up ? (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M5 15l10-10v6h2V3h-8v2h6L5 15z" />
+          </svg>
+        ) : (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M15 5L5 15v-6H3v8h8v-2H5l10-10z" />
+          </svg>
+        )}
+        {Math.abs(n).toFixed(1)}%
+      </span>
+    );
   };
 
   const fetchAlertHistory = () => {
@@ -899,8 +979,8 @@ function Dashboard({ onLogout, userInfo }) {
                           {increaseRate > 0 ? (
                             <svg
                               className="w-3 h-3 mr-1 text-green-500"
-                              fill="currentColor"
                               viewBox="0 0 20 20"
+                              fill="currentColor"
                             >
                               <path
                                 fillRule="evenodd"
@@ -911,8 +991,8 @@ function Dashboard({ onLogout, userInfo }) {
                           ) : increaseRate < 0 ? (
                             <svg
                               className="w-3 h-3 mr-1 text-red-500"
-                              fill="currentColor"
                               viewBox="0 0 20 20"
+                              fill="currentColor"
                             >
                               <path
                                 fillRule="evenodd"
@@ -940,7 +1020,7 @@ function Dashboard({ onLogout, userInfo }) {
                             isDarkMode ? "text-white" : "text-gray-900"
                           } mt-1`}
                         >
-                          {totalCount}
+                          {countsNow.total}
                         </p>
                       </div>
                     </div>
@@ -976,18 +1056,27 @@ function Dashboard({ onLogout, userInfo }) {
                           </svg>
                         </div>
                         <span className="text-xs text-gray-500 font-medium flex items-center">
-                          <svg
-                            className="w-3 h-3 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          +1.4%
+                          {statusRates.active > 0 ? (
+                            <svg
+                              className="w-3 h-3 mr-1 text-green-500"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" />
+                            </svg>
+                          ) : statusRates.active < 0 ? (
+                            <svg
+                              className="w-3 h-3 mr-1 text-red-500"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M14.707 10.293a1 1 0 00-1.414 0L11 12.586V5a1 1 0 10-2 0v7.586l-2.293-2.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l4-4a1 1 0 000-1.414z" />
+                            </svg>
+                          ) : null}
+                          <span>
+                            {statusRates.active > 0 && "+"}
+                            {statusRates.active.toFixed(1)}%
+                          </span>
                         </span>
                       </div>
                       <div>
@@ -1003,7 +1092,7 @@ function Dashboard({ onLogout, userInfo }) {
                             isDarkMode ? "text-white" : "text-gray-900"
                           } mt-1`}
                         >
-                          {onlineCount}
+                          {countsNow.active}
                         </p>
                       </div>
                     </div>
@@ -1039,18 +1128,27 @@ function Dashboard({ onLogout, userInfo }) {
                           </svg>
                         </div>
                         <span className="text-xs text-gray-500 font-medium flex items-center">
-                          <svg
-                            className="w-3 h-3 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          -25.0%
+                          {statusRates.error > 0 ? (
+                            <svg
+                              className="w-3 h-3 mr-1 text-green-500"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" />
+                            </svg>
+                          ) : statusRates.error < 0 ? (
+                            <svg
+                              className="w-3 h-3 mr-1 text-red-500"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M14.707 10.293a1 1 0 00-1.414 0L11 12.586V5a1 1 0 10-2 0v7.586l-2.293-2.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l4-4a1 1 0 000-1.414z" />
+                            </svg>
+                          ) : null}
+                          <span>
+                            {statusRates.error > 0 && "+"}
+                            {statusRates.error.toFixed(1)}%
+                          </span>
                         </span>
                       </div>
                       <div>
@@ -1066,7 +1164,7 @@ function Dashboard({ onLogout, userInfo }) {
                             isDarkMode ? "text-white" : "text-gray-900"
                           } mt-1`}
                         >
-                          {offlineCount}
+                          {countsNow.error}
                         </p>
                       </div>
                     </div>
@@ -1102,18 +1200,27 @@ function Dashboard({ onLogout, userInfo }) {
                           </svg>
                         </div>
                         <span className="text-xs text-gray-500 font-medium flex items-center">
-                          <svg
-                            className="w-3 h-3 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          +66.7%
+                          {statusRates.warning > 0 ? (
+                            <svg
+                              className="w-3 h-3 mr-1 text-green-500"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" />
+                            </svg>
+                          ) : statusRates.warning < 0 ? (
+                            <svg
+                              className="w-3 h-3 mr-1 text-red-500"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M14.707 10.293a1 1 0 00-1.414 0L11 12.586V5a1 1 0 10-2 0v7.586l-2.293-2.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l4-4a1 1 0 000-1.414z" />
+                            </svg>
+                          ) : null}
+                          <span>
+                            {statusRates.warning > 0 && "+"}
+                            {statusRates.warning.toFixed(1)}%
+                          </span>
                         </span>
                       </div>
                       <div>
@@ -1129,7 +1236,7 @@ function Dashboard({ onLogout, userInfo }) {
                             isDarkMode ? "text-white" : "text-gray-900"
                           } mt-1`}
                         >
-                          {warningCount}
+                          {countsNow.warning}
                         </p>
                       </div>
                     </div>

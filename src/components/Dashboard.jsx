@@ -765,7 +765,8 @@ function Dashboard({ onLogout, userInfo }) {
                             onClick={() => setSelectedCctv(cctv)}
                           >
                             <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
-                              {cctv.status === "ACTIVE" &&
+                              {(cctv.status === "ACTIVE" ||
+                                cctv.status === "WARNING") &&
                               cctv.hlsAddress?.includes("http") ? (
                                 <CctvPlayer
                                   key={cctv.id}
@@ -1321,7 +1322,8 @@ function Dashboard({ onLogout, userInfo }) {
                                   } rounded-lg p-4 relative`}
                                 >
                                   <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative">
-                                    {cctv.status === "ACTIVE" &&
+                                    {(cctv.status === "ACTIVE" ||
+                                      cctv.status === "WARNING") &&
                                     cctv.hlsAddress?.includes("http") ? (
                                       <CctvPlayer
                                         key={cctv.id}
@@ -1917,7 +1919,8 @@ function Dashboard({ onLogout, userInfo }) {
                                   {/* 영상 미리보기 */}
                                   <div className="w-full">
                                     <div className="w-full aspect-video bg-black rounded-md overflow-hidden relative">
-                                      {cctv.status === "ACTIVE" &&
+                                      {(cctv.status === "ACTIVE" ||
+                                        cctv.status === "WARNING") &&
                                       cctv.hlsAddress?.includes("http") ? (
                                         <CctvPlayer
                                           key={cctv.id}

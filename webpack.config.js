@@ -67,12 +67,25 @@ module.exports = (env, argv) => {
           port: 3000,
           historyApiFallback: true,
           proxy: [
+//            {
+//              context: ["/api"],
+//              target: "http://localhost:8080",
+//              changeOrigin: true,
+//              ws: true,
+//              pathRewrite: (p) => p.replace(/^\/api/, ""),
+//            },
             {
-              context: ["/api"],
-              target: "http://localhost:8080",
+              context: ["/api/cctvs"],
+              target: "http://localhost:8081",
               changeOrigin: true,
               ws: true,
               pathRewrite: (p) => p.replace(/^\/api/, ""),
+            },
+            {
+              context: ["/api/dashboard"],
+              target: "http://localhost:8080",
+              changeOrigin: true,
+              ws: true,
             },
           ],
         }

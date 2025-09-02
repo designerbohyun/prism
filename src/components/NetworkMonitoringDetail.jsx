@@ -10,10 +10,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import CctvPlayer from "./CctvPlayer";
+import { API_BASE } from "../apiBase";
 
 function NetworkMonitoringDetail({ isDarkMode, cctvInfo, onBack }) {
   const [timeRange, setTimeRange] = useState("24h");
-  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const [data, setData] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -95,28 +96,107 @@ function NetworkMonitoringDetail({ isDarkMode, cctvInfo, onBack }) {
 
     return { chartData: data, tableData: tableData.reverse() };
   };
+// ✅ 데이터를 가져오는 단일 비동기 함수 정의
+const fetchData = async () => {
+  setIsLoading(true);
+  let chartData = [];
+  let tableData = [];
+  let dataFetched = false;
 
-  useEffect(() => {
-    setIsLoading(true);
-    const { chartData, tableData } = generateSampleData();
-    setData(chartData);
-    setTableData(tableData);
-    setIsLoading(false);
-  }, [timeRange]);
+  if (cctvInfo?.id) {
+    try {
+      console.log('try to fetch');
+      const res = await fetch(`${API_BASE}/dashboard/${cctvInfo.id}?lim=100`);
 
+      // ✅ 응답 상태가 성공적인지 먼저 확인
+      if (res.ok) {
+        let apiData = [];
+        try {
+          // ✅ .json() 파싱 과정에서도 에러가 날 수 있으므로 별도 try...catch
+          apiData = await res.json();
+        } catch (jsonErr) {
+          console.error("Error parsing JSON:", jsonErr);
+        }
+
+        if (apiData && Array.isArray(apiData) && apiData.length > 0) {
+          chartData = apiData.map(item => ({
+            time: new Date(item.timestamp).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }),
+            fullTime: item.timestamp,
+            RTT_MAX: item.maxRttMs,
+            RTT_AVG: item.avgRttMs,
+            RTT_MIN: item.minRttMs,
+            PACKET_LOSS_RATE: item.packetLossPct,
+            STATUS: item.status === "SUCCESS" ? 1 : 0
+          })).reverse();
+          tableData = apiData.map((item, index) => ({
+            id: index,
+            timestamp: item.timestamp,
+            status: item.status,
+            rttMax: item.maxRttMs,
+            rttAvg: item.avgRttMs,
+            rttMin: item.minRttMs,
+            packetLoss: item.packetLossPct
+          })).reverse();
+          dataFetched = true;
+        }
+      } else {
+        console.error("HTTP Error:", res.status, res.statusText);
+      }
+    } catch (networkErr) {
+      console.error("Network Error:", networkErr);
+    }
+  }
+
+  // API 데이터 로딩에 실패했거나 cctvInfo.id가 없으면 샘플 데이터 사용
+  if (!dataFetched) {
+    const sample = generateSampleData();
+    chartData = sample.chartData;
+    tableData = sample.tableData;
+  }
+
+  setData(chartData);
+  setTableData(tableData);
+  setIsLoading(false);
+};
+
+  // ✅ 초기 데이터 로딩 및 timeRange, cctvInfo 변경 시 데이터 재호출
+    useEffect(() => {
+      fetchData();
+    }, [cctvInfo?.id, timeRange]);
+
+//   useEffect(() => {
+//     setIsLoading(true);
+//     const { chartData, tableData } = fetchAndSetData();
+//     setData(chartData);
+//     setTableData(tableData);
+//     setIsLoading(false);
+//   }, [timeRange]);
+
+// ✅ 자동 새로고침 로직
   useEffect(() => {
     let interval;
     if (autoRefresh) {
       interval = setInterval(() => {
-        const { chartData, tableData } = generateSampleData();
-        setData(chartData);
-        setTableData(tableData);
+        fetchData(); // 10초마다 데이터 가져오기
       }, 10000);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [autoRefresh, timeRange]);
+  }, [autoRefresh, timeRange]); // 의존성 배열에 timeRange 추가
+//   useEffect(() => {
+//     let interval;
+//     if (autoRefresh) {
+//       interval = setInterval(() => {
+//         const { chartData, tableData } = fetchAndSetData();
+//         setData(chartData);
+//         setTableData(tableData);
+//       }, 10000);
+//     }
+//     return () => {
+//       if (interval) clearInterval(interval);
+//     };
+//   }, [autoRefresh, timeRange]);
 
   // 로컬 스토리지에서 컬럼 설정 불러오기
   useEffect(() => {
@@ -218,13 +298,18 @@ function NetworkMonitoringDetail({ isDarkMode, cctvInfo, onBack }) {
     });
   };
 
-  const handleRefresh = () => {
-    setIsLoading(true);
-    const { chartData, tableData } = generateSampleData();
-    setData(chartData);
-    setTableData(tableData);
-    setIsLoading(false);
-  };
+  // ✅ 새로고침 버튼 핸들러
+    const handleRefresh = () => {
+      fetchData(); // 수동 새로고침
+    };
+
+//   const handleRefresh = () => {
+//     setIsLoading(true);
+//     const { chartData, tableData } = fetchAndSetData();
+//     setData(chartData);
+//     setTableData(tableData);
+//     setIsLoading(false);
+//   };
 
   return (
     <div className="space-y-6">

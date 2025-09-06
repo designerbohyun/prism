@@ -5,45 +5,50 @@ export const mockCctvList = [
     locationName: "본사 1층 로비",
     ipAddress: "192.168.1.101",
     status: "ACTIVE",
-    hlsAddress: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+    hlsAddress:
+      "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
     groupId: 1,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 2,
     locationName: "본사 2층 회의실",
     ipAddress: "192.168.1.102",
     status: "ACTIVE",
-    hlsAddress: "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
+    hlsAddress:
+      "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
     groupId: 1,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 3,
     locationName: "지하주차장 A구역",
     ipAddress: "192.168.1.103",
     status: "ACTIVE",
-    hlsAddress: "https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8",
+    hlsAddress:
+      "https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8",
     groupId: 2,
-    locationAddress: "서울시 강남구 테헤란로 123 지하"
+    locationAddress: "서울시 강남구 테헤란로 123 지하",
   },
   {
     id: 4,
     locationName: "지하주차장 B구역",
     ipAddress: "192.168.1.104",
     status: "WARNING",
-    hlsAddress: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+    hlsAddress:
+      "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
     groupId: 2,
-    locationAddress: "서울시 강남구 테헤란로 123 지하"
+    locationAddress: "서울시 강남구 테헤란로 123 지하",
   },
   {
     id: 5,
     locationName: "정문 출입구",
     ipAddress: "192.168.1.105",
     status: "ACTIVE",
-    hlsAddress: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+    hlsAddress:
+      "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
     groupId: 3,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 6,
@@ -52,62 +57,68 @@ export const mockCctvList = [
     status: "OFFLINE",
     hlsAddress: "",
     groupId: 3,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 7,
     locationName: "3층 복도",
     ipAddress: "192.168.1.107",
     status: "ACTIVE",
-    hlsAddress: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+    hlsAddress:
+      "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
     groupId: 1,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 8,
     locationName: "옥상",
     ipAddress: "192.168.1.108",
     status: "ACTIVE",
-    hlsAddress: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+    hlsAddress:
+      "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
     groupId: 4,
-    locationAddress: "서울시 강남구 테헤란로 123 옥상"
+    locationAddress: "서울시 강남구 테헤란로 123 옥상",
   },
   {
     id: 9,
     locationName: "창고",
     ipAddress: "192.168.1.109",
     status: "WARNING",
-    hlsAddress: "https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8",
+    hlsAddress:
+      "https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8",
     groupId: 4,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 10,
     locationName: "카페테리아",
     ipAddress: "192.168.1.110",
     status: "ACTIVE",
-    hlsAddress: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+    hlsAddress:
+      "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
     groupId: 1,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 11,
     locationName: "엘리베이터 홀",
     ipAddress: "192.168.1.111",
     status: "ACTIVE",
-    hlsAddress: "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
+    hlsAddress:
+      "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
     groupId: 1,
-    locationAddress: "서울시 강남구 테헤란로 123"
+    locationAddress: "서울시 강남구 테헤란로 123",
   },
   {
     id: 12,
     locationName: "비상계단",
     ipAddress: "192.168.1.112",
     status: "ACTIVE",
-    hlsAddress: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+    hlsAddress:
+      "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
     groupId: 1,
-    locationAddress: "서울시 강남구 테헤란로 123"
-  }
+    locationAddress: "서울시 강남구 테헤란로 123",
+  },
 ];
 
 // CCTV 그룹 목업 데이터
@@ -115,38 +126,38 @@ export const mockCctvGroups = [
   { id: 1, name: "본사 건물", description: "본사 메인 건물 내부" },
   { id: 2, name: "주차장", description: "지하 주차장 구역" },
   { id: 3, name: "출입구", description: "정문/후문 출입구" },
-  { id: 4, name: "기타", description: "기타 시설" }
+  { id: 4, name: "기타", description: "기타 시설" },
 ];
 
 // 알림 이력 목업 데이터
 export const mockAlertHistory = [
   {
     id: 1,
-    cctvName: "후문 출입구",
-    cctvGroupName: "출입구",
+    cctvName: "BETA 강의실",
+    cctvGroupName: "강의실",
     failureCriteria: "응답없음",
     severity: "위험",
     occurrenceTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30분 전
-    managerName: "김철수",
+    managerName: "강민석, 최현제",
   },
   {
     id: 2,
-    cctvName: "지하주차장 B구역",
-    cctvGroupName: "주차장",
+    cctvName: "ALPHA 강의실",
+    cctvGroupName: "강의실",
     failureCriteria: "지연",
     severity: "주의",
     occurrenceTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2시간 전
-    managerName: "이영희",
+    managerName: "강민석",
   },
   {
     id: 3,
-    cctvName: "창고",
-    cctvGroupName: "기타",
+    cctvName: "BETA 강의실",
+    cctvGroupName: "강의실",
     failureCriteria: "패킷 손실",
     severity: "주의",
     occurrenceTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4시간 전
-    managerName: "박민수",
-  }
+    managerName: "최현제",
+  },
 ];
 
 // 사용자 목업 데이터
@@ -157,32 +168,56 @@ export const mockUsers = [
     email: "admin@prism.com",
     role: "admin",
     department: "IT부서",
-    lastLogin: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+    lastLogin: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 2,
-    name: "김철수",
-    email: "kim@prism.com",
+    name: "강민석",
+    email: "kang@prism.com",
     role: "operator",
-    department: "보안팀",
-    lastLogin: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
+    department: "장치관리팀",
+    lastLogin: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 3,
-    name: "이영희",
-    email: "lee@prism.com",
+    name: "김시현",
+    email: "kim@prism.com",
     role: "operator",
-    department: "시설팀",
-    lastLogin: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+    department: "장치관리팀",
+    lastLogin: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 4,
-    name: "박민수",
-    email: "park@prism.com",
+    name: "이승표",
+    email: "leek@prism.com",
+    role: "operator",
+    department: "장치관리팀",
+    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 5,
+    name: "이상은",
+    email: "sang@prism.com",
     role: "network_admin",
     department: "네트워크팀",
-    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-  }
+    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 6,
+    name: "최현제",
+    email: "choi@prism.com",
+    role: "network_admin",
+    department: "네트워크팀",
+    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 7,
+    name: "한선영",
+    email: "han@prism.com",
+    role: "network_admin",
+    department: "네트워크팀",
+    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
 ];
 
 // 목업 API 함수들
@@ -223,5 +258,5 @@ export const mockApi = {
         resolve(mockUsers);
       }, 200);
     });
-  }
+  },
 };

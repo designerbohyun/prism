@@ -1,4 +1,25 @@
 import React, { useState, useEffect } from "react";
+// 목업 데이터 파일 경로: src/mocks/mockData.js (경로가 다르면 아래 경로를 맞춰주세요)
+import { mockApi } from "../data/mockData";
+
+// role(영문) → permission(한글) 매핑
+const ROLE_LABEL = {
+  admin: "관리자",
+  network_admin: "네트워크 관리자",
+  operator: "장치 관리자",
+};
+
+// ISO → 'YYYY-MM-DD HH:mm' 포맷
+const formatDate = (iso) => {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+};
 
 function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   const [searchTerm] = useState("");
@@ -6,53 +27,8 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
   const [selectedStatus] = useState("전체");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "김철수",
-      email: "kim@prism.com",
-      permission: "관리자",
-      status: "활성",
-      lastLogin: "2025-01-27 14:30",
-      createdAt: "2024-12-15",
-    },
-    {
-      id: 2,
-      name: "이영희",
-      email: "lee@prism.com",
-      permission: "네트워크 관리자",
-      status: "활성",
-      lastLogin: "2025-01-27 09:15",
-      createdAt: "2024-11-20",
-    },
-    {
-      id: 3,
-      name: "박민수",
-      email: "park@prism.com",
-      permission: "장치 관리자",
-      status: "활성",
-      lastLogin: "2025-01-26 18:45",
-      createdAt: "2025-01-05",
-    },
-    {
-      id: 4,
-      name: "정수진",
-      email: "jung@prism.com",
-      permission: "장치 관리자",
-      status: "비활성",
-      lastLogin: "2025-01-15 12:00",
-      createdAt: "2024-10-10",
-    },
-    {
-      id: 5,
-      name: "최동훈",
-      email: "choi@prism.com",
-      permission: "관리자",
-      status: "활성",
-      lastLogin: "2025-01-27 16:20",
-      createdAt: "2024-09-01",
-    },
-  ]);
+  // ⬇️ 초기 하드코딩 배열 대신, 목업에서 가져오므로 빈 배열로 시작
+  const [users, setUsers] = useState([]);
 
   // 사용자 등록/수정 폼 데이터
   const [formData, setFormData] = useState({
@@ -72,6 +48,28 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
       onRegisterDrawerTrigger(() => openDrawer);
     }
   }, [onRegisterDrawerTrigger]);
+
+  // ⬇️ 최초 마운트 시 목업 데이터에서 사용자 로드
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const raw = await mockApi.getUsers(); // [{id, name, email, role, department, lastLogin}, ...]
+      if (!alive) return;
+      const mapped = raw.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        permission: ROLE_LABEL[u.role] ?? "장치 관리자",
+        status: "활성", // 서버 연동 시 해당 필드 사용
+        lastLogin: formatDate(u.lastLogin),
+        createdAt: "-", // 서버 연동 시 해당 필드 사용
+      }));
+      setUsers(mapped);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // 필터링된 사용자 목록
   const filteredUsers = users.filter((user) => {
@@ -588,7 +586,7 @@ function UserManagement({ isDarkMode, onRegisterDrawerTrigger }) {
                 <>
                   <div>
                     <label
-                      className={`block text-sm font-medium ${
+                      className={`block text.sm font-medium ${
                         isDarkMode ? "text-gray-300" : "text-gray-700"
                       } mb-2`}
                     >

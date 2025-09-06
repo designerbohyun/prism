@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import PrismLogin from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import PasswordReset from "./components/PasswordReset";
+import NotificationHistory from "./components/NotificationHistory";
 
 const STORAGE_KEY = "prism_login_state";
 const USER_INFO_KEY = "prism_user_info";
@@ -106,6 +107,16 @@ function App() {
           element={
             isLoggedIn ? (
               <Dashboard onLogout={handleLogout} userInfo={userInfo} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+        <Route 
+          path="/notifications" 
+          element={
+            isLoggedIn ? (
+              <NotificationHistory />
             ) : (
               <Navigate to="/login" replace />
             )

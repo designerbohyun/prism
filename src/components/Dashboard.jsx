@@ -4,6 +4,7 @@ import CCTVGroupManagement from "./CCTVGroupManagement";
 import UserManagement from "./UserManagement";
 import CCTVAlertHistory from "./CCTVAlertHistory";
 import NetworkMonitoringDetail from "./NetworkMonitoringDetail";
+import NotificationModal from "./NotificationModal";
 import PrismLightLogo from "../assets/PrismLightLogo";
 import PrismDarkLogo from "../assets/PrismDarkLogo";
 import CctvPlayer from "./CctvPlayer";
@@ -15,6 +16,7 @@ function Dashboard({ onLogout, userInfo }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCctv, setSelectedCctv] = useState(null);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   // 사용자 권한 확인
   const userRole = userInfo?.role || "operator";
@@ -68,12 +70,6 @@ function Dashboard({ onLogout, userInfo }) {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  const calcRate = (t, p) => {
-    const tn = Number(t) || 0;
-    const pn = Number(p) || 0;
-    if (pn === 0) return tn === 0 ? 0 : tn * 100; // 전일 0이면 캡 없이 t×100
-    return ((tn - pn) / pn) * 100;
-  };
 
   const fetchDailyCounts = async () => {
     try {
@@ -590,8 +586,38 @@ function Dashboard({ onLogout, userInfo }) {
               </h2>
             </div>
 
-            {/* 등록 버튼들 - 관리자만 표시 */}
+            {/* 우측 버튼들 */}
             <div className="flex items-center space-x-3">
+              {/* 알림 아이콘 - 관리자만 표시 */}
+              {userRole === "admin" && (
+                <button
+                  onClick={() => setIsNotificationModalOpen(true)}
+                  className={`relative p-2 rounded-lg transition-colors ${
+                    isDarkMode
+                      ? "text-gray-400 hover:text-white hover:bg-gray-700"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  }`}
+                  title="알림 이력"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
+                    />
+                  </svg>
+                  {/* 알림 배지 - 새로운 알림이 있을 때 표시 */}
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    3
+                  </span>
+                </button>
+              )}
               {/* CCTV 그룹 등록 버튼 */}
               {userRole === "admin" && activeMenu === "cctv-group" && (
                 <button
@@ -695,6 +721,7 @@ function Dashboard({ onLogout, userInfo }) {
               isDarkMode={isDarkMode}
               onRegisterDrawerTrigger={setCctvDrawerTrigger}
               onRefreshCctvs={refreshCctvStats}
+              userRole={userRole}
             />
           ) : activeMenu === "users" ? (
             <UserManagement
@@ -2423,6 +2450,13 @@ function Dashboard({ onLogout, userInfo }) {
           )}
         </main>
       </div>
+      
+      {/* 알림 이력 모달 */}
+      <NotificationModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 }

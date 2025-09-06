@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE } from "../apiBase";
+import { mockApi } from "../data/mockData";
 
 function CCTVManagement({
   isDarkMode,
   onRegisterDrawerTrigger,
   onRefreshCctvs,
+  userRole,
 }) {
   const [cctvList, setCctvList] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -45,7 +47,30 @@ function CCTVManagement({
   );
 
   // 목록 갱신 함수
-  const fetchCctvList = () => {
+  const fetchCctvList = async () => {
+    // 관리자 계정일 때만 가데이터 사용
+    if (userRole === "admin") {
+      try {
+        const mockData = await mockApi.getCctvList();
+        const mapped = mockData.map((item) => ({
+          id: item.id,
+          deviceName: item.locationName,
+          ipAddress: item.ipAddress,
+          location: item.locationAddress,
+          hlsUrl: item.hlsAddress,
+          longitude: item.longitude || "",
+          latitude: item.latitude || "",
+          roadAddress: item.locationAddress,
+          status: item.status?.toUpperCase() || "OFFLINE",
+        }));
+        setCctvList(mapped);
+        return;
+      } catch (err) {
+        console.error("Mock CCTV 데이터 로드 실패:", err);
+      }
+    }
+
+    // 서버 API 호출 (관리자가 아니거나 Mock 데이터 실패시)
     fetch(`${API_BASE}/cctvs`)
       .then((res) => res.json())
       .then((data) => {
@@ -69,7 +94,7 @@ function CCTVManagement({
 
   useEffect(() => {
     fetchCctvList();
-  }, []);
+  }, [userRole]);
 
   useEffect(() => {
     if (onRegisterDrawerTrigger) {
@@ -633,134 +658,372 @@ function CCTVManagement({
               </form>
             ) : (
               /* 세부 정보 표시 */
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      장치명
-                    </label>
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedCctv?.deviceName}
-                    </p>
+              <div className="overflow-y-auto">
+                {/* 기본 정보 섹션 */}
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center mb-4">
+                    <svg className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h4 className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                      기본 정보
+                    </h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          장치명
+                        </label>
+                      </div>
+                      <p className={`text-sm font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.deviceName}
+                      </p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          IP 주소
+                        </label>
+                      </div>
+                      <p className={`text-sm font-mono ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.ipAddress}
+                      </p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          설치 위치
+                        </label>
+                      </div>
+                      <p className={`text-sm ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.location}
+                      </p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          상태
+                        </label>
+                      </div>
+                      <StatusBadge status={selectedCctv?.status} />
+                    </div>
                   </div>
 
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      IP 주소
-                    </label>
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedCctv?.ipAddress}
-                    </p>
+                  {/* 위치 정보 */}
+                  <div className="mt-4">
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          도로명 주소
+                        </label>
+                      </div>
+                      <p className={`text-sm ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.roadAddress}
+                      </p>
+                      <p className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        좌표: {selectedCctv?.longitude}, {selectedCctv?.latitude}
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      설치 위치
-                    </label>
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedCctv?.location}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      상태
-                    </label>
-                    <StatusBadge status={selectedCctv?.status} />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      HLS 스트리밍 URL
-                    </label>
-                    <p
-                      className={`text-sm break-all ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedCctv?.hlsUrl}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      좌표 (경도, 위도)
-                    </label>
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedCctv?.longitude}, {selectedCctv?.latitude}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
-                    >
-                      도로명 주소
-                    </label>
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedCctv?.roadAddress}
-                    </p>
+                  {/* 스트리밍 정보 */}
+                  <div className="mt-4">
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293L12 11l.707-.707A1 1 0 0113.414 10H15m-6 6h6m2-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          HLS 스트리밍 URL
+                        </label>
+                      </div>
+                      <p className={`text-xs break-all font-mono ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                        {selectedCctv?.hlsUrl}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex pt-4">
+                {/* 디바이스 상세 정보 섹션 */}
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center mb-4">
+                    <svg className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                    </svg>
+                    <h4 className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                      디바이스 정보
+                    </h4>
+                  </div>
+
+                  {/* 기본 디바이스 정보 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          장치 ID
+                        </label>
+                      </div>
+                      <p className={`text-sm font-mono ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.device_id || "N/A"}
+                      </p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          그룹명
+                        </label>
+                      </div>
+                      <p className={`text-sm ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.group_name || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 상태 및 연결 정보 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          마지막 하트비트
+                        </label>
+                      </div>
+                      <p className={`text-sm ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.last_heartbeat_at 
+                          ? new Date(selectedCctv.last_heartbeat_at).toLocaleString('ko-KR')
+                          : "N/A"}
+                      </p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-center mb-2">
+                        <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          업타임
+                        </label>
+                      </div>
+                      <p className={`text-sm ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {selectedCctv?.uptime_seconds 
+                          ? `${Math.floor(selectedCctv.uptime_seconds / 86400)}일 ${Math.floor((selectedCctv.uptime_seconds % 86400) / 3600)}시간`
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 시스템 리소스 모니터링 */}
+                  <div className="mb-4">
+                    <h5 className={`text-sm font-semibold mb-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                      시스템 리소스 모니터링
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className={`p-4 rounded-lg border ${
+                        selectedCctv?.cpu_usage_pct > 80 
+                          ? isDarkMode ? "bg-red-900/20 border-red-500" : "bg-red-50 border-red-300"
+                          : isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                            </svg>
+                            <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              CPU 사용률
+                            </label>
+                          </div>
+                          {selectedCctv?.cpu_usage_pct > 80 && (
+                            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className={`text-lg font-bold ${
+                          selectedCctv?.cpu_usage_pct > 80 
+                            ? isDarkMode ? "text-red-400" : "text-red-600"
+                            : isDarkMode ? "text-white" : "text-gray-900"
+                        }`}>
+                          {selectedCctv?.cpu_usage_pct ? `${selectedCctv.cpu_usage_pct}%` : "N/A"}
+                        </p>
+                      </div>
+
+                      <div className={`p-4 rounded-lg border ${
+                        selectedCctv?.mem_usage_pct > 85 
+                          ? isDarkMode ? "bg-red-900/20 border-red-500" : "bg-red-50 border-red-300"
+                          : isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                            </svg>
+                            <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              메모리
+                            </label>
+                          </div>
+                          {selectedCctv?.mem_usage_pct > 85 && (
+                            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className={`text-lg font-bold ${
+                          selectedCctv?.mem_usage_pct > 85 
+                            ? isDarkMode ? "text-red-400" : "text-red-600"
+                            : isDarkMode ? "text-white" : "text-gray-900"
+                        }`}>
+                          {selectedCctv?.mem_usage_pct ? `${selectedCctv.mem_usage_pct}%` : "N/A"}
+                        </p>
+                        <p className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          {selectedCctv?.mem_used_mb && selectedCctv?.mem_total_mb 
+                            ? `${selectedCctv.mem_used_mb}MB / ${selectedCctv.mem_total_mb}MB`
+                            : ""}
+                        </p>
+                      </div>
+
+                      <div className={`p-4 rounded-lg border ${
+                        selectedCctv?.disk_usage_pct > 90 
+                          ? isDarkMode ? "bg-red-900/20 border-red-500" : "bg-red-50 border-red-300"
+                          : isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                            </svg>
+                            <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              디스크
+                            </label>
+                          </div>
+                          {selectedCctv?.disk_usage_pct > 90 && (
+                            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className={`text-lg font-bold ${
+                          selectedCctv?.disk_usage_pct > 90 
+                            ? isDarkMode ? "text-red-400" : "text-red-600"
+                            : isDarkMode ? "text-white" : "text-gray-900"
+                        }`}>
+                          {selectedCctv?.disk_usage_pct ? `${selectedCctv.disk_usage_pct}%` : "N/A"}
+                        </p>
+                        <p className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          {selectedCctv?.disk_free_gb && selectedCctv?.disk_total_gb 
+                            ? `${selectedCctv.disk_free_gb}GB 사용 가능 / ${selectedCctv.disk_total_gb}GB`
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 환경 및 네트워크 정보 */}
+                  <div>
+                    <h5 className={`text-sm font-semibold mb-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                      환경 및 네트워크
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className={`p-4 rounded-lg border ${
+                        selectedCctv?.device_temp_c > 60 
+                          ? isDarkMode ? "bg-red-900/20 border-red-500" : "bg-red-50 border-red-300"
+                          : isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              장치 온도
+                            </label>
+                          </div>
+                          {selectedCctv?.device_temp_c > 60 && (
+                            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className={`text-lg font-bold ${
+                          selectedCctv?.device_temp_c > 60 
+                            ? isDarkMode ? "text-red-400" : "text-red-600"
+                            : isDarkMode ? "text-white" : "text-gray-900"
+                        }`}>
+                          {selectedCctv?.device_temp_c ? `${selectedCctv.device_temp_c}℃` : "N/A"}
+                        </p>
+                      </div>
+
+                      <div className={`p-4 rounded-lg border ${
+                        selectedCctv?.rtt_ms > 30 
+                          ? isDarkMode ? "bg-yellow-900/20 border-yellow-500" : "bg-yellow-50 border-yellow-300"
+                          : isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                            </svg>
+                            <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              네트워크 지연
+                            </label>
+                          </div>
+                          {selectedCctv?.rtt_ms > 30 && (
+                            <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className={`text-lg font-bold ${
+                          selectedCctv?.rtt_ms > 30 
+                            ? isDarkMode ? "text-yellow-400" : "text-yellow-600"
+                            : isDarkMode ? "text-white" : "text-gray-900"
+                        }`}>
+                          {selectedCctv?.rtt_ms ? `${selectedCctv.rtt_ms}ms` : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 관리 버튼 */}
+                <div className="p-6">
                   <button
                     onClick={handleDeleteCctv}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isDarkMode
-                        ? "bg-red-600 hover:bg-red-700 text-white"
-                        : "bg-red-600 hover:bg-red-700 text-white"
-                    }`}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
                   >
                     삭제
                   </button>
                 </div>
+
               </div>
             )}
           </div>
